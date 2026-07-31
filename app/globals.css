@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #fff8f6;
+    --surface-dim: #efd4d0;
+    --surface-bright: #fff8f6;
+    --surface-container-lowest: #ffffff;
+    --surface-container-low: #fff0ee;
+    --surface-container: #ffe9e6;
+    --surface-container-high: #fee2dd;
+    --surface-container-highest: #f8dcd8;
+    --on-surface: #261816;
+    --on-surface-variant: #5a403c;
+    --inverse-surface: #3d2c2a;
+    --inverse-on-surface: #ffedea;
+    --outline: #8e706b;
+    --outline-variant: #e3beb8;
+    --surface-tint: #b52619;
+    --primary: #610000;
+    --on-primary: #ffffff;
+    --primary-container: #8b0000;
+    --on-primary-container: #ff907f;
+    --inverse-primary: #ffb4a8;
+    --secondary: #bc0000;
+    --on-secondary: #ffffff;
+    --secondary-container: #e51c10;
+    --on-secondary-container: #fffbff;
+    --tertiary: #00178d;
+    --on-tertiary: #ffffff;
+    --tertiary-container: #0025c8;
+    --on-tertiary-container: #9ea9ff;
+    --error: #ba1a1a;
+    --on-error: #ffffff;
+    --error-container: #ffdad6;
+    --on-error-container: #93000a;
+  }
+}
+
+@theme {
+  --color-brand-primary: #610000;
+  --color-brand-container: #8b0000;
+  --color-brand-secondary: #bc0000;
+  --color-brand-accent: #e51c10;
+  --color-brand-bg: #fff8f6;
+  --color-brand-surface: #ffffff;
+  --color-brand-surface-dim: #efd4d0;
+  --color-brand-text: #261816;
+  --color-brand-muted: #5a403c;
+  --color-brand-border: #e3beb8;
+  --color-brand-dark: #3d2c2a;
+
+  --radius-card: 24px;
+  --radius-btn: 12px;
+  --radius-input: 8px;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--on-surface);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Glassmorphism Utilities */
+.glass-header {
+  background: rgba(255, 248, 246, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(227, 190, 184, 0.35);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(227, 190, 184, 0.4);
+}
+
+.glass-nav-mobile {
+  background: rgba(255, 248, 246, 0.92);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid rgba(227, 190, 184, 0.4);
+}
+
+/* Custom Soft Shadow & Lift */
+.shadow-lux {
+  box-shadow: 0 4px 20px -2px rgba(97, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.shadow-lux-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.shadow-lux-hover:hover {
+  transform: translateY(-8px) scale(1.015);
+  box-shadow: 0 24px 48px -12px rgba(139, 0, 0, 0.12), 0 0 0 1px #e3beb8;
+}
+
+/* Smooth Scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
