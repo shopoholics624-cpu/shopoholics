@@ -22,7 +22,7 @@ export function Footer() {
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-semibold text-white text-base">2-Year Elite Warranty</h4>
+              <h4 className="font-semibold text-white text-base">2-Year Official Warranty</h4>
               <p className="text-xs text-[#e3beb8] mt-1">Full coverage on titanium build & battery health.</p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export function Footer() {
 
           {/* Newsletter Subscription */}
           <div className="md:col-span-4 space-y-4">
-            <h5 className="font-semibold text-white text-sm">Elite Circle Insider</h5>
+            <h5 className="font-semibold text-white text-sm">Hardware Insider</h5>
             <p className="text-xs text-[#e3beb8]">
               Subscribe for private key releases, hardware keynote invitations, and custom luxury finishes.
             </p>
@@ -116,7 +116,7 @@ export function Footer() {
               />
               <button
                 type="submit"
-                className="px-4 py-2.5 rounded-xl bg-[#8b0000] hover:bg-[#e51c10] text-white text-xs font-semibold shrink-0 transition-colors flex items-center gap-1"
+                className="px-4 py-2.5 rounded-xl bg-[#8b0000] hover:bg-[#e51c10] text-white text-xs font-semibold shrink-0 transition-colors flex items-center gap-1 min-h-[44px]"
               >
                 <span>Join</span>
                 <ArrowRight className="w-3.5 h-3.5" />

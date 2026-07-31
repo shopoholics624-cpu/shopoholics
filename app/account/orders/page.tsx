@@ -3,7 +3,7 @@
 import { PRODUCTS } from "@/constants/products";
 import { formatPrice } from "@/lib/utils";
 import { useDemo } from "@/hooks/use-demo";
-import { Package, Truck, ShieldCheck, CheckCircle2, Clock, User, MapPin } from "lucide-react";
+import { Package, Truck, ShieldCheck, User, MapPin } from "lucide-react";
 
 export default function AccountOrdersPage() {
   const { isDemoMode, handleDemoAction } = useDemo();
@@ -42,7 +42,7 @@ export default function AccountOrdersPage() {
             </div>
             <div>
               <span className="text-xs font-bold text-[#ff907f] uppercase tracking-wider">
-                VIP Elite Member
+                Registered Client
               </span>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white">
                 Alexander Wright
@@ -162,11 +162,11 @@ export default function AccountOrdersPage() {
                 <ShieldCheck className="w-4 h-4 text-[#8b0000]" /> Concierge Direct Support
               </h3>
               <p className="text-xs text-[#5a403c] leading-relaxed">
-                As an Elite Member, you enjoy direct priority line access for hardware diagnostics, battery replacements, and custom laser engravings.
+                As a valued customer, you enjoy direct priority line access for hardware diagnostics, battery replacements, and custom laser engravings.
               </p>
               <button
                 onClick={(e) => isDemoMode && handleDemoAction(e)}
-                className="w-full py-2.5 bg-[#8b0000] text-white rounded-xl text-xs font-bold hover:bg-[#bc0000] transition-colors"
+                className="w-full py-3 bg-[#8b0000] text-white rounded-xl text-xs font-bold hover:bg-[#bc0000] transition-colors min-h-[44px]"
               >
                 Contact Hardware Specialist
               </button>

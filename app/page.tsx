@@ -1,16 +1,19 @@
 import { HeroShowcase } from "@/components/home/hero-showcase";
+import { HorizontalShowcase } from "@/components/home/horizontal-showcase";
 import { CategoryPills } from "@/components/home/category-pills";
 import { ProductGrid } from "@/components/common/product-grid";
-import { EliteBanner } from "@/components/home/elite-banner";
 import { PRODUCTS } from "@/constants/products";
-import Link from "next/link";
+import { DemoLink as Link } from "@/components/demo/demo-link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function HomePage() {
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 pb-12">
       {/* Hero Showcase */}
       <HeroShowcase />
+
+      {/* Brand New Apple-Style Horizontal Scroll Showcase */}
+      <HorizontalShowcase />
 
       {/* Category Pills Navigation */}
       <CategoryPills />
@@ -33,7 +36,7 @@ export default function HomePage() {
 
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 text-sm font-bold text-[#8b0000] hover:text-[#bc0000] transition-colors"
+              className="inline-flex items-center gap-2 text-sm font-bold text-[#8b0000] hover:text-[#bc0000] transition-colors min-h-[44px] flex items-center"
             >
               <span>Explore All Products</span>
               <ArrowRight className="w-4 h-4" />
@@ -44,9 +47,6 @@ export default function HomePage() {
           <ProductGrid products={PRODUCTS} />
         </div>
       </section>
-
-      {/* Elite Membership Banner */}
-      <EliteBanner />
     </div>
   );
 }

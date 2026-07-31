@@ -4,7 +4,8 @@ import { useState } from "react";
 import { PRODUCTS } from "@/constants/products";
 import { FilterSidebar } from "@/components/shop/filter-sidebar";
 import { ProductCard } from "@/components/common/product-card";
-import { SlidersHorizontal, Grid, Search } from "lucide-react";
+import { SlidersHorizontal, Search, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -12,6 +13,7 @@ export default function ShopPage() {
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState("featured");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const filteredProducts = PRODUCTS.filter((product) => {
     if (selectedCategory !== "all" && product.category !== selectedCategory) {
@@ -43,18 +45,18 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="py-10 bg-[#fff8f6] min-h-screen">
+    <div className="py-8 sm:py-12 bg-[#fff8f6] min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Page Header */}
-        <div className="bg-gradient-to-r from-[#3d2c2a] via-[#610000] to-[#3d2c2a] text-white p-8 sm:p-12 rounded-3xl shadow-xl border border-[#8e706b]/40 relative overflow-hidden">
+        <div className="bg-gradient-to-r from-[#3d2c2a] via-[#610000] to-[#3d2c2a] text-white p-6 sm:p-12 rounded-3xl shadow-xl border border-[#8e706b]/40 relative overflow-hidden">
           <div className="relative z-10 max-w-2xl space-y-3">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#ff907f]">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#ff907f]">
               Crimson Luxe Catalog
             </span>
-            <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
               Premium Hardware Collection
             </h1>
-            <p className="text-sm sm:text-base text-[#e3beb8] leading-relaxed">
+            <p className="text-xs sm:text-base text-[#e3beb8] leading-relaxed">
               Explore titanium-crafted smartphones, laptops, audio systems, and smart wearables. All devices include complimentary 2-year elite coverage.
             </p>
           </div>
@@ -62,40 +64,51 @@ export default function ShopPage() {
 
         {/* Toolbar & Grid layout */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* Filter Sidebar */}
-          <FilterSidebar
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            priceRange={priceRange}
-            setPriceRange={setPriceRange}
-            inStockOnly={inStockOnly}
-            setInStockOnly={setInStockOnly}
-            resetFilters={resetFilters}
-          />
+          {/* Desktop Filter Sidebar (Sticky) */}
+          <div className="hidden lg:block lg:w-64 shrink-0 lg:sticky lg:top-28">
+            <FilterSidebar
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              priceRange={priceRange}
+              setPriceRange={setPriceRange}
+              inStockOnly={inStockOnly}
+              setInStockOnly={setInStockOnly}
+              resetFilters={resetFilters}
+            />
+          </div>
 
           {/* Catalog Content Area */}
           <div className="flex-1 w-full space-y-6">
             {/* Top Controls Bar */}
-            <div className="bg-white rounded-2xl p-4 border border-[#e3beb8]/60 shadow-lux flex flex-wrap items-center justify-between gap-4">
+            <div className="bg-white rounded-2xl p-4 border border-[#e3beb8]/60 shadow-lux flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+              {/* Mobile Filter Button */}
+              <button
+                onClick={() => setIsMobileFilterOpen(true)}
+                className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-[#8b0000] text-white font-bold text-xs rounded-xl shadow-md active:scale-95 transition-all min-h-[44px]"
+              >
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>Filters</span>
+              </button>
+
               {/* Search input in catalog */}
-              <div className="relative flex-1 min-w-[240px]">
-                <Search className="w-4 h-4 text-[#8e706b] absolute left-3.5 top-3" />
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="w-4 h-4 text-[#8e706b] absolute left-3.5 top-3.5" />
                 <input
                   type="text"
-                  placeholder="Filter hardware by keyword..."
+                  placeholder="Filter hardware..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-[#fff8f6] rounded-xl text-xs font-medium text-[#261816] placeholder:text-[#8e706b] border border-[#e3beb8]/40 focus:outline-none focus:border-[#8b0000]"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#fff8f6] rounded-xl text-xs font-medium text-[#261816] placeholder:text-[#8e706b] border border-[#e3beb8]/40 focus:outline-none focus:border-[#8b0000] min-h-[44px]"
                 />
               </div>
 
               {/* Sort By Dropdown */}
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-[#5a403c] hidden sm:inline">Sort By:</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#5a403c] hidden sm:inline">Sort:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 bg-[#fff8f6] text-xs font-semibold text-[#261816] rounded-xl border border-[#e3beb8]/60 outline-none cursor-pointer"
+                  className="px-3 py-2.5 bg-[#fff8f6] text-xs font-semibold text-[#261816] rounded-xl border border-[#e3beb8]/60 outline-none cursor-pointer min-h-[44px]"
                 >
                   <option value="featured">Featured First</option>
                   <option value="price-low">Price: Low to High</option>
@@ -121,7 +134,7 @@ export default function ShopPage() {
                 </p>
                 <button
                   onClick={resetFilters}
-                  className="px-6 py-2.5 bg-[#8b0000] text-white rounded-xl font-semibold text-xs hover:bg-[#bc0000] transition-colors"
+                  className="px-6 py-3 bg-[#8b0000] text-white rounded-xl font-semibold text-xs hover:bg-[#bc0000] transition-colors min-h-[44px]"
                 >
                   Reset All Filters
                 </button>
@@ -130,6 +143,39 @@ export default function ShopPage() {
           </div>
         </div>
       </div>
+
+      {/* Mobile Slide-Up Filter Drawer */}
+      <AnimatePresence>
+        {isMobileFilterOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex items-end">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileFilterOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="relative w-full max-h-[85vh] overflow-y-auto bg-white rounded-t-[32px] p-4 shadow-2xl z-10"
+            >
+              <FilterSidebar
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                inStockOnly={inStockOnly}
+                setInStockOnly={setInStockOnly}
+                resetFilters={resetFilters}
+                onClose={() => setIsMobileFilterOpen(false)}
+              />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

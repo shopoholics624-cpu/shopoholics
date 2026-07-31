@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import confetti from "canvas-confetti";
 import Link from "next/link";
-import { CheckCircle2, ShieldCheck, Truck, ArrowRight, Crown } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Truck, ArrowRight, Sparkles } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 
 export default function OrderSuccessPage() {
@@ -31,7 +31,7 @@ export default function OrderSuccessPage() {
 
       <div className="space-y-2 max-w-lg mx-auto">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#ffe9e6] text-[#8b0000] text-xs font-bold uppercase tracking-wider">
-          <Crown className="w-3.5 h-3.5 text-[#e51c10]" /> Welcome to the Elite Circle
+          <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Order Verified & Registered
         </span>
         <h1 className="text-3xl font-extrabold text-[#261816]">
           Order Confirmed & Allocated
@@ -56,7 +56,7 @@ export default function OrderSuccessPage() {
             <span className="font-mono font-bold text-[#261816]">TRK-8849-CLX</span>
           </div>
           <div className="flex justify-between">
-            <span>VIP Concierge Support</span>
+            <span>Concierge Support</span>
             <span className="font-bold text-emerald-700">Activated (24/7)</span>
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function OrderSuccessPage() {
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
         <Link
           href="/account/orders"
-          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#8b0000] hover:bg-[#bc0000] text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#8b0000] hover:bg-[#bc0000] text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 min-h-[44px]"
         >
           <span>Track Order Status</span>
           <ArrowRight className="w-4 h-4" />
@@ -74,7 +74,7 @@ export default function OrderSuccessPage() {
 
         <Link
           href="/shop"
-          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#fff8f6] hover:bg-[#ffe9e6] text-[#8b0000] border border-[#e3beb8] font-bold text-xs transition-colors"
+          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#fff8f6] hover:bg-[#ffe9e6] text-[#8b0000] border border-[#e3beb8] font-bold text-xs transition-colors min-h-[44px] flex items-center justify-center"
         >
           Return to Showroom
         </Link>

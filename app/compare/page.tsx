@@ -35,8 +35,8 @@ export default function ComparePage() {
   };
 
   return (
-    <div className="py-10 bg-[#fff8f6] min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="py-8 sm:py-12 bg-[#fff8f6] min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
         {/* Breadcrumb & Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
@@ -46,10 +46,10 @@ export default function ComparePage() {
             >
               <ArrowLeft className="w-4 h-4" /> Back to Catalog
             </Link>
-            <h1 className="text-3xl font-extrabold text-[#261816] flex items-center gap-2.5">
-              <ArrowLeftRight className="w-8 h-8 text-[#8b0000]" /> Hardware Comparison Matrix
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-[#261816] flex items-center gap-2.5 tracking-tight">
+              <ArrowLeftRight className="w-7 h-7 sm:w-8 sm:h-8 text-[#8b0000] shrink-0" /> Hardware Comparison Matrix
             </h1>
-            <p className="text-sm text-[#5a403c]">
+            <p className="text-xs sm:text-sm text-[#5a403c]">
               Side-by-side technical specification analysis for high-end decision making.
             </p>
           </div>
@@ -57,7 +57,7 @@ export default function ComparePage() {
           {compareList.length > 0 && (
             <button
               onClick={clearCompare}
-              className="px-4 py-2 bg-[#ffe9e6] text-[#8b0000] rounded-xl text-xs font-bold hover:bg-[#8b0000] hover:text-white transition-colors self-start sm:self-auto"
+              className="px-4 py-2.5 bg-[#ffe9e6] text-[#8b0000] rounded-xl text-xs font-bold hover:bg-[#8b0000] hover:text-white transition-colors self-start sm:self-auto min-h-[44px]"
             >
               Clear Comparison Slots
             </button>
@@ -66,8 +66,8 @@ export default function ComparePage() {
 
         {/* Comparison Table Grid */}
         {compareList.length > 0 ? (
-          <div className="bg-white rounded-3xl p-6 border border-[#e3beb8]/60 shadow-lux overflow-x-auto">
-            <div className="min-w-[700px] space-y-8">
+          <div className="bg-white rounded-3xl p-4 sm:p-6 border border-[#e3beb8]/60 shadow-lux overflow-x-auto">
+            <div className="min-w-[650px] space-y-8">
               {/* Product Headers Row */}
               <div className="grid grid-cols-5 gap-6 border-b border-[#ffe9e6] pb-6">
                 <div className="col-span-1 flex flex-col justify-end">
@@ -90,7 +90,7 @@ export default function ComparePage() {
                     <img
                       src={product.featuredImage}
                       alt={product.title}
-                      className="w-full h-40 object-cover rounded-2xl border border-[#e3beb8]/50"
+                      className="w-full h-36 sm:h-40 object-cover rounded-2xl border border-[#e3beb8]/50"
                     />
 
                     <div>
@@ -105,7 +105,7 @@ export default function ComparePage() {
 
                     <button
                       onClick={() => handleAddToCart(product)}
-                      className={`w-full py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${
+                      className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm min-h-[44px] ${
                         addingId === product.id
                           ? "bg-emerald-700 text-white"
                           : "bg-[#8b0000] hover:bg-[#bc0000] text-white"
@@ -120,7 +120,7 @@ export default function ComparePage() {
                 {compareList.length < 4 && (
                   <button
                     onClick={(e) => isDemoMode && handleDemoAction(e)}
-                    className="col-span-1 border-2 border-dashed border-[#e3beb8] rounded-2xl flex flex-col items-center justify-center p-6 text-center text-[#8e706b] hover:border-[#8b0000] transition-colors"
+                    className="col-span-1 border-2 border-dashed border-[#e3beb8] rounded-2xl flex flex-col items-center justify-center p-6 text-center text-[#8e706b] hover:border-[#8b0000] transition-colors min-h-[140px]"
                   >
                     <Plus className="w-8 h-8 text-[#8b0000] mb-2" />
                     <span className="text-xs font-semibold text-[#261816]">Add Device</span>
@@ -180,7 +180,7 @@ export default function ComparePage() {
             </p>
             <Link
               href="/shop"
-              className="inline-block px-6 py-3 bg-[#8b0000] text-white font-bold text-xs rounded-xl hover:bg-[#bc0000] transition-colors"
+              className="inline-block px-6 py-3.5 bg-[#8b0000] text-white font-bold text-xs rounded-xl hover:bg-[#bc0000] transition-colors min-h-[44px]"
             >
               Browse Catalog & Add Devices
             </Link>
