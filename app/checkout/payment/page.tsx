@@ -4,12 +4,12 @@ import { useCart } from "@/hooks/use-cart";
 import { useDemo } from "@/hooks/use-demo";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
-import { CreditCard, Lock, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { CreditCard, Lock, ArrowRight } from "lucide-react";
 import { useState } from "react";
 
 export default function PaymentPage() {
   const router = useRouter();
-  const { paymentDetails, setPaymentDetails, total, clearCart } = useCart();
+  const { paymentDetails, setPaymentDetails, total } = useCart();
   const { isDemoMode, handleDemoAction } = useDemo();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -71,7 +71,7 @@ export default function PaymentPage() {
               required
               value={paymentDetails.cardName}
               onChange={(e) => setPaymentDetails({ ...paymentDetails, cardName: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#fff8f6] text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
+              className="w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
             />
           </div>
 
@@ -82,7 +82,7 @@ export default function PaymentPage() {
               required
               value={paymentDetails.cardNumber}
               onChange={(e) => setPaymentDetails({ ...paymentDetails, cardNumber: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#fff8f6] text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
+              className="w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
             />
           </div>
 
@@ -91,45 +91,41 @@ export default function PaymentPage() {
               <label className="text-xs font-bold text-[#5a403c] uppercase">Expiry Date</label>
               <input
                 type="text"
+                placeholder="MM/YY"
                 required
                 value={paymentDetails.cardExpiry}
                 onChange={(e) => setPaymentDetails({ ...paymentDetails, cardExpiry: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#fff8f6] text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
+                className="w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-[#5a403c] uppercase">Security CVC</label>
+              <label className="text-xs font-bold text-[#5a403c] uppercase">CVC Code</label>
               <input
                 type="text"
+                maxLength={4}
                 required
                 value={paymentDetails.cardCvc}
                 onChange={(e) => setPaymentDetails({ ...paymentDetails, cardCvc: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#fff8f6] text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
+                className="w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
               />
             </div>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-[#ffe9e6] flex items-center justify-between">
+        <div className="pt-4 flex items-center justify-between border-t border-[#ffe9e6]">
           <div>
-            <span className="text-xs font-semibold text-[#5a403c] block">Final Charge</span>
-            <span className="text-2xl font-extrabold text-[#8b0000]">{formatPrice(total)}</span>
+            <span className="text-xs text-[#5a403c] font-medium block">Total Charged:</span>
+            <span className="text-xl font-extrabold text-[#8b0000]">{formatPrice(total)}</span>
           </div>
 
           <button
             type="submit"
             disabled={isProcessing}
-            className="px-8 py-4 bg-[#8b0000] text-white rounded-xl font-bold text-xs hover:bg-[#bc0000] transition-all flex items-center gap-2 shadow-xl disabled:opacity-50"
+            className="px-8 py-3.5 bg-[#8b0000] text-white font-bold text-xs rounded-xl shadow-lg hover:bg-[#bc0000] transition-colors flex items-center gap-2 disabled:opacity-50"
           >
-            {isProcessing ? (
-              <span>Authorizing Encrypted Payment...</span>
-            ) : (
-              <>
-                <span>Complete Order ({formatPrice(total)})</span>
-                <CheckCircle2 className="w-4 h-4" />
-              </>
-            )}
+            <span>{isProcessing ? "Authorizing Payment..." : "Complete Purchase"}</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </form>

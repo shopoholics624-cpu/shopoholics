@@ -2,61 +2,68 @@
 
 import { useRef, useState } from "react";
 import { DemoLink as Link } from "@/components/demo/demo-link";
-import { Smartphone, Laptop, Headphones, Watch, Layers, ShieldCheck, Zap, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 
-export function CategoryPills() {
+export function OurProductsSlider() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  const categories = [
+  const productCategories = [
     {
-      id: "smartphones",
-      name: "Smartphones",
-      count: "12 Flagship Models",
+      id: "cat-1",
+      title: "Titanium Smartphones",
+      subtitle: "Apex Flagship Series",
       image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=800&auto=format&fit=crop",
       href: "/categories/smartphones",
+      badge: "12 Models",
     },
     {
-      id: "laptops",
-      name: "Laptops & Compute",
-      count: "8 Pro Models",
+      id: "cat-2",
+      title: "HyperBook Laptops",
+      subtitle: "M4 Max Compute",
       image: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?q=80&w=800&auto=format&fit=crop",
       href: "/shop?category=laptops",
+      badge: "8 Models",
     },
     {
-      id: "audio",
-      name: "Studio Audio",
-      count: "15 Acoustic Systems",
+      id: "cat-3",
+      title: "Studio Acoustics",
+      subtitle: "AeroBuds & Spatial Audio",
       image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?q=80&w=800&auto=format&fit=crop",
       href: "/shop?category=audio",
+      badge: "15 Models",
     },
     {
-      id: "wearables",
-      name: "Watch Bands & GPS",
-      count: "6 Titanium Models",
+      id: "cat-4",
+      title: "Chronos Watch Bands",
+      subtitle: "Grade 5 Titanium Straps",
       image: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?q=80&w=800&auto=format&fit=crop",
       href: "/shop?category=wearables",
+      badge: "6 Models",
     },
     {
-      id: "optics",
-      name: "Optics & Cameras",
-      count: "10 Medium Format",
+      id: "cat-5",
+      title: "Medium Format Optics",
+      subtitle: "8K Cinema Cameras",
       image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?q=80&w=800&auto=format&fit=crop",
       href: "/shop?category=optics",
+      badge: "10 Models",
     },
     {
-      id: "smarthome",
-      name: "Smart Home & IoT",
-      count: "14 Encrypted Devices",
+      id: "cat-6",
+      title: "Smart Home Automation",
+      subtitle: "Thread & Matter IoT",
       image: "https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=800&auto=format&fit=crop",
       href: "/shop?category=smarthome",
+      badge: "14 Models",
     },
     {
-      id: "accessories",
-      name: "Desk Mats & Chargers",
-      count: "20+ Tech Accessories",
+      id: "cat-7",
+      title: "Tactile Chargers & Mats",
+      subtitle: "Wireless Power Dock",
       image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=800&auto=format&fit=crop",
       href: "/shop",
+      badge: "20+ Accessories",
     },
   ];
 
@@ -69,7 +76,7 @@ export function CategoryPills() {
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
-    const amount = 320;
+    const amount = 300;
     scrollRef.current.scrollBy({
       left: direction === "left" ? -amount : amount,
       behavior: "smooth",
@@ -77,26 +84,26 @@ export function CategoryPills() {
   };
 
   return (
-    <section className="py-12 bg-[#fff8f6] border-b border-[#e3beb8]/30">
+    <section className="py-12 bg-white border-b border-[#e3beb8]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Header & Controls */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-[#8b0000] block mb-1">
-              Curated Collections
+              Shop-O-Holics Collection
             </span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-[#261816] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#261816] tracking-tight">
               Our Products
             </h2>
             <p className="text-xs sm:text-sm text-[#5a403c] mt-1">
-              Discover titanium smartphones, studio acoustic monitors, and smart ecosystem devices.
+              Explore our handcrafted luxury hardware categories and precision engineering.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={() => scroll("left")}
-              className="p-2.5 rounded-xl bg-white border border-[#e3beb8]/60 text-[#261816] hover:bg-[#ffe9e6] hover:text-[#8b0000] transition-colors shadow-sm min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2.5 rounded-xl bg-[#fff8f6] border border-[#e3beb8]/60 text-[#261816] hover:bg-[#ffe9e6] hover:text-[#8b0000] transition-colors shadow-sm min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Scroll left"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -111,44 +118,51 @@ export function CategoryPills() {
           </div>
         </div>
 
-        {/* Coveritup Style Category Horizontal Scroll Slider */}
+        {/* Horizontal Scroll Track */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
           className="flex gap-5 overflow-x-auto pb-4 pt-2 scroll-smooth no-scrollbar"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {categories.map((cat) => (
+          {productCategories.map((item) => (
             <Link
-              key={cat.id}
-              href={cat.href}
-              className="w-[240px] sm:w-[280px] shrink-0 group relative h-[320px] rounded-3xl overflow-hidden border border-[#e3beb8]/60 shadow-lux hover:shadow-2xl transition-all duration-300 flex flex-col justify-end p-6 bg-white"
+              key={item.id}
+              href={item.href}
+              className="w-[240px] sm:w-[270px] shrink-0 group bg-[#fff8f6] rounded-[28px] p-4 border border-[#e3beb8]/60 shadow-lux hover:shadow-2xl hover:border-[#8b0000]/50 transition-all duration-300 flex flex-col justify-between"
             >
-              {/* Image Background */}
-              {/* eslint-disable-next-img-element */}
-              <img
-                src={cat.image}
-                alt={cat.name}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-
-              {/* Gradient Vignette Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
-
-              {/* Card Content Overlay */}
-              <div className="relative z-10 space-y-1 text-white">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#ff907f] block">
-                  {cat.count}
+              <div className="relative w-full h-48 bg-white rounded-2xl p-3 border border-[#e3beb8]/30 overflow-hidden flex items-center justify-center">
+                <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-[#fff8f6] text-[#8b0000] text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#e3beb8]/40 z-10">
+                  {item.badge}
                 </span>
-                <h3 className="text-xl font-bold text-white group-hover:text-[#ff907f] transition-colors">
-                  {cat.name}
+
+                {/* eslint-disable-next-img-element */}
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+
+              <div className="mt-4 mb-2 text-center space-y-1">
+                <h3 className="font-extrabold text-base text-[#261816] group-hover:text-[#8b0000] transition-colors line-clamp-1">
+                  {item.title}
                 </h3>
+                <p className="text-xs text-[#8e706b] font-medium">
+                  {item.subtitle}
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-[#ffe9e6] flex items-center justify-center">
+                <span className="text-xs font-bold text-[#8b0000] group-hover:underline inline-flex items-center gap-1">
+                  Shop Now <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </span>
               </div>
             </Link>
           ))}
         </div>
 
-        {/* Coveritup Scroll Indicator Line */}
+        {/* Progress Indicator */}
         <div className="w-full bg-[#ffe9e6] h-1.5 rounded-full overflow-hidden max-w-xs mx-auto">
           <div
             className="h-full bg-[#8b0000] rounded-full transition-all duration-150"

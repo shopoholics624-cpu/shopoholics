@@ -25,13 +25,22 @@ export function DemoLink({
   const { openPreviewModal } = useDemo();
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    const isHome = href === "/" || href === "#";
+    const hrefStr = typeof href === "string" ? href : href.pathname || "";
+    
+    // Allow Homepage AND Product/Catalog routes to open directly
+    const isAllowedRoute =
+      hrefStr === "/" ||
+      hrefStr === "#" ||
+      hrefStr === "/shop" ||
+      hrefStr.startsWith("/shop?") ||
+      hrefStr.startsWith("/products/") ||
+      hrefStr.startsWith("/categories/");
 
     if (onClick) {
       onClick(e);
     }
 
-    if (DEMO_MODE && !isHome) {
+    if (DEMO_MODE && !isAllowedRoute) {
       e.preventDefault();
       e.stopPropagation();
       openPreviewModal();

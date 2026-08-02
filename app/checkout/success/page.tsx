@@ -41,40 +41,34 @@ export default function OrderSuccessPage() {
         </p>
       </div>
 
-      {/* Delivery Timeline Card */}
-      <div className="bg-[#fff8f6] rounded-2xl p-6 border border-[#e3beb8]/40 text-left max-w-md mx-auto space-y-4 text-xs">
-        <div className="flex items-center justify-between font-bold text-[#261816] pb-[#ffe9e6] border-b border-[#ffe9e6]">
-          <span className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-[#8b0000]" /> Insured Courier Express
-          </span>
-          <span className="text-[#8b0000]">Delivering Aug 3, 2026</span>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto pt-4 text-left">
+        <div className="p-4 rounded-2xl bg-white border border-[#e3beb8]/60 shadow-sm space-y-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#8b0000]">
+            <Truck className="w-4 h-4" /> Express Shipping
+          </div>
+          <p className="text-xs text-[#5a403c]">Insured Delivery by August 3, 2026</p>
         </div>
 
-        <div className="space-y-2 text-[#5a403c]">
-          <div className="flex justify-between">
-            <span>Tracking Number</span>
-            <span className="font-mono font-bold text-[#261816]">TRK-8849-CLX</span>
+        <div className="p-4 rounded-2xl bg-white border border-[#e3beb8]/60 shadow-sm space-y-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#8b0000]">
+            <ShieldCheck className="w-4 h-4" /> Hardware Protection
           </div>
-          <div className="flex justify-between">
-            <span>Concierge Support</span>
-            <span className="font-bold text-emerald-700">Activated (24/7)</span>
-          </div>
+          <p className="text-xs text-[#5a403c]">2-Year Official Protection Activated</p>
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+      <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
         <Link
           href="/account/orders"
-          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#8b0000] hover:bg-[#bc0000] text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 min-h-[44px]"
+          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#8b0000] hover:bg-[#bc0000] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg transition-colors min-h-[44px]"
         >
-          <span>Track Order Status</span>
+          <span>View Order Status</span>
           <ArrowRight className="w-4 h-4" />
         </Link>
 
         <Link
           href="/shop"
-          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-[#fff8f6] hover:bg-[#ffe9e6] text-[#8b0000] border border-[#e3beb8] font-bold text-xs transition-colors min-h-[44px] flex items-center justify-center"
+          className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white text-[#8b0000] border-2 border-[#8b0000] font-bold text-xs hover:bg-[#fff0ee] transition-colors min-h-[44px]"
         >
           Return to Showroom
         </Link>

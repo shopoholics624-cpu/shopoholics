@@ -79,7 +79,7 @@ export function ProductCard({ product }: ProductCardProps) {
             className={`p-1.5 sm:p-2 rounded-full transition-all ${
               inCompare
                 ? "bg-[#8b0000] text-white"
-                : "bg-[#fff8f6] text-[#5a403c] hover:bg-[#ffe9e6] hover:text-[#8b0000]"
+                : "bg-white text-[#5a403c] hover:bg-[#ffe9e6] hover:text-[#8b0000]"
             }`}
           >
             <ArrowLeftRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -87,7 +87,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Product Image Link */}
-        <Link href={`/products/${product.slug}`} className="block my-1 sm:my-2 overflow-hidden rounded-xl sm:rounded-2xl bg-[#fff8f6]">
+        <Link href={`/products/${product.slug}`} className="block my-1 sm:my-2 overflow-hidden rounded-xl sm:rounded-2xl bg-white">
           {/* eslint-disable-next-img-element */}
           <img
             src={product.featuredImage}

@@ -106,7 +106,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-6 py-3 bg-[#fff8f6] border-t border-[#ffe9e6] flex items-center justify-between text-xs text-[#5a403c]">
+            <div className="px-6 py-3 bg-white border-t border-[#ffe9e6] flex items-center justify-between text-xs text-[#5a403c]">
               <span>Press <kbd className="px-1.5 py-0.5 bg-white border rounded text-[10px] font-mono shadow-sm">ESC</kbd> to exit</span>
               <Link
                 href="/shop"

@@ -67,7 +67,7 @@ export default function ProductDetailPage({
   };
 
   return (
-    <div className="py-8 bg-[#fff8f6] min-h-screen">
+    <div className="py-8 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
         {/* Breadcrumb Navigation */}
         <div className="flex items-center gap-2 text-xs text-[#5a403c]">
@@ -249,7 +249,7 @@ export default function ProductDetailPage({
         <InteractiveCanvas />
 
         {/* Product Technical Specifications Tabs */}
-        <div className="bg-[#white] bg-white rounded-3xl p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
+        <div className="bg-white rounded-3xl p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
           <div className="flex border-b border-[#ffe9e6] gap-8">
             <button
               onClick={() => setActiveTab("specs")}

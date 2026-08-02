@@ -22,7 +22,7 @@ export default function CategoryPage({
     categoryKey.charAt(0).toUpperCase() + categoryKey.slice(1);
 
   return (
-    <div className="py-10 bg-[#fff8f6] min-h-screen">
+    <div className="py-10 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Breadcrumb Back */}
         <Link

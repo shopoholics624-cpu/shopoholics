@@ -32,7 +32,7 @@ export default function AccountOrdersPage() {
   ];
 
   return (
-    <div className="py-10 bg-[#fff8f6] min-h-screen">
+    <div className="py-10 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* User Account Header Banner */}
         <div className="bg-gradient-to-r from-[#3d2c2a] via-[#610000] to-[#3d2c2a] text-white p-8 sm:p-10 rounded-3xl shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border border-[#8e706b]/40">

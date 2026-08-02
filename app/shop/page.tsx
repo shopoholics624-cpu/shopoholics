@@ -4,7 +4,7 @@ import { useState } from "react";
 import { PRODUCTS } from "@/constants/products";
 import { FilterSidebar } from "@/components/shop/filter-sidebar";
 import { ProductCard } from "@/components/common/product-card";
-import { SlidersHorizontal, Search, X } from "lucide-react";
+import { SlidersHorizontal, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ShopPage() {
@@ -45,7 +45,7 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="py-8 sm:py-12 bg-[#fff8f6] min-h-screen">
+    <div className="py-8 sm:py-12 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Page Header */}
         <div className="bg-gradient-to-r from-[#3d2c2a] via-[#610000] to-[#3d2c2a] text-white p-6 sm:p-12 rounded-3xl shadow-xl border border-[#8e706b]/40 relative overflow-hidden">
@@ -57,14 +57,14 @@ export default function ShopPage() {
               Premium Hardware Collection
             </h1>
             <p className="text-xs sm:text-base text-[#e3beb8] leading-relaxed">
-              Explore titanium-crafted smartphones, laptops, audio systems, and smart wearables. All devices include complimentary 2-year elite coverage.
+              Explore titanium-crafted smartphones, laptops, audio systems, and smart wearables. All devices include complimentary 2-year coverage.
             </p>
           </div>
         </div>
 
         {/* Toolbar & Grid layout */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* Desktop Filter Sidebar (Sticky) */}
+          {/* Desktop Filter Sidebar */}
           <div className="hidden lg:block lg:w-64 shrink-0 lg:sticky lg:top-28">
             <FilterSidebar
               selectedCategory={selectedCategory}
@@ -81,7 +81,6 @@ export default function ShopPage() {
           <div className="flex-1 w-full space-y-6">
             {/* Top Controls Bar */}
             <div className="bg-white rounded-2xl p-4 border border-[#e3beb8]/60 shadow-lux flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-              {/* Mobile Filter Button */}
               <button
                 onClick={() => setIsMobileFilterOpen(true)}
                 className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-[#8b0000] text-white font-bold text-xs rounded-xl shadow-md active:scale-95 transition-all min-h-[44px]"
@@ -90,7 +89,6 @@ export default function ShopPage() {
                 <span>Filters</span>
               </button>
 
-              {/* Search input in catalog */}
               <div className="relative flex-1 min-w-[200px]">
                 <Search className="w-4 h-4 text-[#8e706b] absolute left-3.5 top-3.5" />
                 <input
@@ -102,7 +100,6 @@ export default function ShopPage() {
                 />
               </div>
 
-              {/* Sort By Dropdown */}
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-[#5a403c] hidden sm:inline">Sort:</span>
                 <select

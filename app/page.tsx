@@ -1,6 +1,6 @@
 import { HeroShowcase } from "@/components/home/hero-showcase";
-import { HorizontalShowcase } from "@/components/home/horizontal-showcase";
-import { CategoryPills } from "@/components/home/category-pills";
+import { OurProductsSlider } from "@/components/home/our-products-slider";
+import { BentoShowcase } from "@/components/home/bento-showcase";
 import { ProductGrid } from "@/components/common/product-grid";
 import { PRODUCTS } from "@/constants/products";
 import { DemoLink as Link } from "@/components/demo/demo-link";
@@ -8,18 +8,18 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 export default function HomePage() {
   return (
-    <div className="space-y-12 pb-12">
-      {/* Hero Showcase */}
+    <div className="space-y-6 pb-12 bg-white">
+      {/* Coveritup Style Hero Showcase with Banner Slider */}
       <HeroShowcase />
 
-      {/* Brand New Apple-Style Horizontal Scroll Showcase */}
-      <HorizontalShowcase />
+      {/* Coveritup Style "Our Products" Horizontal Scroll Slider */}
+      <OurProductsSlider />
 
-      {/* Category Pills Navigation */}
-      <CategoryPills />
+      {/* E-commerce Bento Grid Showcase (Featured Products, Deals & Best Sellers) */}
+      <BentoShowcase />
 
       {/* Spotlight Hardware Showcase Grid */}
-      <section className="py-12 bg-[#fff8f6]">
+      <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
