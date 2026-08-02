@@ -87,12 +87,12 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Product Image Link */}
-        <Link href={`/products/${product.slug}`} className="block my-1 sm:my-2 overflow-hidden rounded-xl sm:rounded-2xl bg-white">
+        <Link href={`/products/${product.slug}`} className="block my-1 sm:my-2 overflow-hidden rounded-xl sm:rounded-2xl bg-white p-2 sm:p-0">
           {/* eslint-disable-next-img-element */}
           <img
             src={product.featuredImage}
             alt={product.title}
-            className="w-full h-32 sm:h-56 object-cover object-center group-hover:scale-105 transition-transform duration-500 rounded-xl sm:rounded-2xl"
+            className="w-full h-36 sm:h-56 object-cover object-center group-hover:scale-105 transition-transform duration-500 rounded-lg sm:rounded-2xl"
           />
         </Link>
 
