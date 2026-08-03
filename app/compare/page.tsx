@@ -2,33 +2,27 @@
 
 import { useCompare } from "@/hooks/use-compare";
 import { useCart } from "@/hooks/use-cart";
-import { useDemo } from "@/hooks/use-demo";
 import { PRODUCTS } from "@/constants/products";
 import { formatPrice } from "@/lib/utils";
 import { RatingStars } from "@/components/common/rating-stars";
 import { DemoLink as Link } from "@/components/demo/demo-link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeftRight,
   X,
   Plus,
-  ShoppingBag,
-  Check,
   Sparkles,
   ArrowLeft,
 } from "lucide-react";
 import { useState } from "react";
 
 export default function ComparePage() {
-  const { compareList, removeFromCompare, addToCompare, clearCompare } = useCompare();
+  const router = useRouter();
+  const { compareList, removeFromCompare, clearCompare } = useCompare();
   const { addToCart } = useCart();
-  const { isDemoMode, handleDemoAction } = useDemo();
   const [addingId, setAddingId] = useState<string | null>(null);
 
   const handleAddToCart = (product: (typeof PRODUCTS)[0]) => {
-    if (isDemoMode) {
-      handleDemoAction();
-      return;
-    }
     addToCart(product, product.variants[0]);
     setAddingId(product.id);
     setTimeout(() => setAddingId(null), 1800);
@@ -119,7 +113,7 @@ export default function ComparePage() {
                 {/* Add Slot Button if less than 4 */}
                 {compareList.length < 4 && (
                   <button
-                    onClick={(e) => isDemoMode && handleDemoAction(e)}
+                    onClick={() => router.push("/shop")}
                     className="col-span-1 border-2 border-dashed border-[#e3beb8] rounded-2xl flex flex-col items-center justify-center p-6 text-center text-[#8e706b] hover:border-[#8b0000] transition-colors min-h-[140px]"
                   >
                     <Plus className="w-8 h-8 text-[#8b0000] mb-2" />

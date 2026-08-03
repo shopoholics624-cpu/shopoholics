@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useState, useEffect } from "react";
 import { PRODUCTS } from "@/constants/products";
 import { useCart } from "@/hooks/use-cart";
 import { useCompare } from "@/hooks/use-compare";
@@ -44,11 +44,16 @@ export default function ProductDetailPage({
   const activeVariant = product.variants[selectedVariantIndex] || product.variants[0];
   const inCompare = isInCompare(product.id);
 
+  // Auto-scroll product gallery images every 3 seconds
+  useEffect(() => {
+    if (!product.images || product.images.length <= 1) return;
+    const interval = setInterval(() => {
+      setSelectedImageIndex((prev) => (prev + 1) % product.images.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [product.images]);
+
   const handleAddToCart = (e: React.MouseEvent) => {
-    if (isDemoMode) {
-      handleDemoAction(e);
-      return;
-    }
     addToCart(product, activeVariant);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -75,7 +80,7 @@ export default function ProductDetailPage({
             <ArrowLeft className="w-3.5 h-3.5" /> Catalog
           </Link>
           <ChevronRight className="w-3 h-3 text-[#8e706b]" />
-          <Link href={`/categories/${product.category}`} className="hover:text-[#8b0000] capitalize">
+          <Link href={`/shop?category=${product.category}`} className="hover:text-[#8b0000] capitalize">
             {product.category}
           </Link>
           <ChevronRight className="w-3 h-3 text-[#8e706b]" />
@@ -85,32 +90,32 @@ export default function ProductDetailPage({
         </div>
 
         {/* Main Product Hero Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Left Media Gallery Column */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="relative rounded-3xl bg-white p-4 border border-[#e3beb8]/60 shadow-lux overflow-hidden">
+            <div className="relative rounded-3xl bg-white p-3 sm:p-4 border border-[#e3beb8]/60 shadow-lux overflow-hidden">
               {/* Main Image */}
               {/* eslint-disable-next-img-element */}
               <img
                 src={product.images[selectedImageIndex] || product.featuredImage}
                 alt={product.title}
-                className="w-full h-[450px] sm:h-[540px] object-cover rounded-2xl transition-all duration-300"
+                className="w-full h-[320px] sm:h-[480px] object-cover rounded-2xl transition-all duration-500"
               />
 
               {product.badge && (
-                <span className="absolute top-8 left-8 px-4 py-1.5 bg-[#8b0000] text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg flex items-center gap-1.5">
+                <span className="absolute top-6 left-6 px-3.5 py-1 bg-[#8b0000] text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> {product.badge}
                 </span>
               )}
             </div>
 
             {/* Thumbnail Row */}
-            <div className="flex gap-4 overflow-x-auto pb-2">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scroll-smooth no-scrollbar">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
+                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
                     selectedImageIndex === idx
                       ? "border-[#8b0000] shadow-md scale-105"
                       : "border-[#e3beb8]/60 opacity-70 hover:opacity-100"
@@ -124,68 +129,73 @@ export default function ProductDetailPage({
           </div>
 
           {/* Right Product Buying Controls */}
-          <div className="lg:col-span-5 bg-white rounded-3xl p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
-            <div>
-              <span className="text-xs font-semibold text-[#8b0000] uppercase tracking-wider">
-                {product.categoryLabel}
-              </span>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#261816] mt-1">
-                {product.title}
-              </h1>
-              <p className="text-xs text-[#5a403c] mt-2 leading-relaxed">
-                {product.tagline}
-              </p>
-              <div className="mt-3">
-                <RatingStars rating={product.rating} reviewCount={product.reviewCount} size={16} />
+          <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
+            {/* Seamless Product Title & Price Header Block */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] font-bold text-[#8b0000] uppercase tracking-wider">
+                  {product.categoryLabel}
+                </span>
+                <span className="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  In Stock
+                </span>
               </div>
-            </div>
 
-            {/* Price Row */}
-            <div className="py-4 border-y border-[#ffe9e6] flex items-baseline justify-between">
-              <div>
-                <span className="text-xs font-bold text-[#8e706b] block">Total Price</span>
-                <div className="flex items-baseline gap-3 mt-0.5">
-                  <span className="text-3xl font-extrabold text-[#8b0000]">
+              <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
+                  {product.title}
+                </h1>
+                <div className="flex items-baseline gap-2 shrink-0">
+                  <span className="text-2xl sm:text-3xl font-black text-[#8b0000]">
                     {formatPrice(activeVariant.price)}
                   </span>
                   {activeVariant.originalPrice && (
-                    <span className="text-base text-[#8e706b] line-through font-medium">
+                    <span className="text-xs sm:text-sm text-[#8e706b] line-through font-medium">
                       {formatPrice(activeVariant.originalPrice)}
                     </span>
                   )}
                 </div>
               </div>
-              <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold">
-                In Stock & Ready to Ship
-              </span>
+
+              <p className="text-xs text-[#5a403c] leading-relaxed">
+                {product.tagline}
+              </p>
+
+              <div className="pt-0.5">
+                <RatingStars rating={product.rating} reviewCount={product.reviewCount} size={15} />
+              </div>
             </div>
 
-            {/* Color & Variant Swatches */}
-            <div className="space-y-3">
+            {/* Horizontal Scroll Track for Product Variants Across All Screen Sizes */}
+            <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-[#8e706b] block">
                 Select Finish & Edition
               </label>
-              <div className="space-y-2">
+
+              <div
+                className="flex gap-2.5 overflow-x-auto pb-2.5 scroll-smooth no-scrollbar"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
                 {product.variants.map((variant, idx) => (
                   <button
                     key={variant.id}
                     onClick={() => setSelectedVariantIndex(idx)}
-                    className={`w-full flex items-center justify-between p-3.5 rounded-2xl border-2 transition-all ${
+                    className={`shrink-0 min-w-[135px] sm:min-w-[155px] flex items-center justify-between p-2.5 sm:p-3 rounded-2xl border-2 transition-all ${
                       selectedVariantIndex === idx
                         ? "border-[#8b0000] bg-[#ffe9e6]/40 shadow-sm"
                         : "border-[#e3beb8]/50 hover:border-[#8b0000]/40 bg-white"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <span
-                        className="w-5 h-5 rounded-full border border-black/20 shadow-sm"
+                        className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-black/20 shadow-sm shrink-0"
                         style={{ backgroundColor: variant.colorHex }}
                       />
-                      <span className="text-xs font-bold text-[#261816]">
+                      <span className="text-[11px] sm:text-xs font-bold text-[#261816] truncate max-w-[75px] sm:max-w-[95px]">
                         {variant.name}
                       </span>
                     </div>
-                    <span className="text-xs font-extrabold text-[#8b0000]">
+                    <span className="text-[11px] sm:text-xs font-extrabold text-[#8b0000] ml-1 shrink-0">
                       {formatPrice(variant.price)}
                     </span>
                   </button>
@@ -197,7 +207,7 @@ export default function ProductDetailPage({
             <div className="space-y-3 pt-2">
               <button
                 onClick={handleAddToCart}
-                className={`w-full py-4 rounded-xl font-bold text-base transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 ${
+                className={`w-full py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 ${
                   added
                     ? "bg-emerald-700 text-white"
                     : "bg-[#8b0000] hover:bg-[#bc0000] text-white"
@@ -249,7 +259,7 @@ export default function ProductDetailPage({
         <InteractiveCanvas />
 
         {/* Product Technical Specifications Tabs */}
-        <div className="bg-white rounded-3xl p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
           <div className="flex border-b border-[#ffe9e6] gap-8">
             <button
               onClick={() => setActiveTab("specs")}

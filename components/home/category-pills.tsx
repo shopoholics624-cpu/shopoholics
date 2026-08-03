@@ -14,7 +14,7 @@ export function CategoryPills() {
       name: "Smartphones",
       count: "12 Flagship Models",
       image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=800&auto=format&fit=crop",
-      href: "/categories/smartphones",
+      href: "/shop?category=smartphones",
     },
     {
       id: "laptops",

@@ -14,7 +14,7 @@ export function OurProductsSlider() {
       title: "Titanium Smartphones",
       subtitle: "Apex Flagship Series",
       image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=800&auto=format&fit=crop",
-      href: "/categories/smartphones",
+      href: "/shop?category=smartphones",
       badge: "12 Models",
     },
     {
@@ -76,7 +76,7 @@ export function OurProductsSlider() {
 
   const scroll = (direction: "left" | "right") => {
     if (!scrollRef.current) return;
-    const amount = 300;
+    const amount = 260;
     scrollRef.current.scrollBy({
       left: direction === "left" ? -amount : amount,
       behavior: "smooth",
@@ -84,18 +84,18 @@ export function OurProductsSlider() {
   };
 
   return (
-    <section className="py-12 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <section className="py-8 sm:py-10 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
         {/* Header & Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#8b0000] block mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8b0000] block mb-0.5">
               Shop-O-Holics Collection
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#261816] tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
               Our Products
             </h2>
-            <p className="text-xs sm:text-sm text-[#5a403c] mt-1">
+            <p className="text-xs text-[#5a403c] mt-0.5">
               Explore our handcrafted luxury hardware categories and precision engineering.
             </p>
           </div>
@@ -103,17 +103,17 @@ export function OurProductsSlider() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => scroll("left")}
-              className="p-2.5 rounded-xl bg-[#fff8f6] border border-[#e3beb8]/60 text-[#261816] hover:bg-[#ffe9e6] hover:text-[#8b0000] transition-colors shadow-sm min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-lg bg-[#fff8f6] border border-[#e3beb8]/60 text-[#261816] hover:bg-[#ffe9e6] hover:text-[#8b0000] transition-colors shadow-sm min-h-[38px] min-w-[38px] flex items-center justify-center"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => scroll("right")}
-              className="p-2.5 rounded-xl bg-[#8b0000] text-white hover:bg-[#bc0000] transition-colors shadow-md min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-lg bg-[#8b0000] text-white hover:bg-[#bc0000] transition-colors shadow-md min-h-[38px] min-w-[38px] flex items-center justify-center"
               aria-label="Scroll right"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -122,17 +122,17 @@ export function OurProductsSlider() {
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-5 overflow-x-auto pb-4 pt-2 scroll-smooth no-scrollbar"
+          className="flex gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth no-scrollbar"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {productCategories.map((item) => (
             <Link
               key={item.id}
               href={item.href}
-              className="w-[240px] sm:w-[270px] shrink-0 group bg-[#fff8f6] rounded-[28px] p-4 border border-[#e3beb8]/60 shadow-lux hover:shadow-2xl hover:border-[#8b0000]/50 transition-all duration-300 flex flex-col justify-between"
+              className="w-[200px] sm:w-[230px] shrink-0 group bg-[#fff8f6] rounded-2xl p-3 border border-[#e3beb8]/60 shadow-sm hover:shadow-lg hover:border-[#8b0000]/50 transition-all duration-300 flex flex-col justify-between"
             >
-              <div className="relative w-full h-48 bg-white rounded-2xl p-3 border border-[#e3beb8]/30 overflow-hidden flex items-center justify-center">
-                <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-[#fff8f6] text-[#8b0000] text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#e3beb8]/40 z-10">
+              <div className="relative w-full h-36 sm:h-40 bg-white rounded-xl p-2 border border-[#e3beb8]/30 overflow-hidden flex items-center justify-center">
+                <span className="absolute top-2 left-2 px-2 py-0.5 bg-[#fff8f6] text-[#8b0000] text-[9px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#e3beb8]/40 z-10">
                   {item.badge}
                 </span>
 
@@ -140,22 +140,22 @@ export function OurProductsSlider() {
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
 
-              <div className="mt-4 mb-2 text-center space-y-1">
-                <h3 className="font-extrabold text-base text-[#261816] group-hover:text-[#8b0000] transition-colors line-clamp-1">
+              <div className="mt-3 mb-1 text-center space-y-0.5">
+                <h3 className="font-extrabold text-xs sm:text-sm text-[#261816] group-hover:text-[#8b0000] transition-colors line-clamp-1">
                   {item.title}
                 </h3>
-                <p className="text-xs text-[#8e706b] font-medium">
+                <p className="text-[11px] text-[#8e706b] font-medium">
                   {item.subtitle}
                 </p>
               </div>
 
               <div className="pt-2 border-t border-[#ffe9e6] flex items-center justify-center">
-                <span className="text-xs font-bold text-[#8b0000] group-hover:underline inline-flex items-center gap-1">
-                  Shop Now <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                <span className="text-[11px] font-bold text-[#8b0000] group-hover:underline inline-flex items-center gap-1">
+                  Shop Now <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </span>
               </div>
             </Link>
@@ -163,7 +163,7 @@ export function OurProductsSlider() {
         </div>
 
         {/* Progress Indicator */}
-        <div className="w-full bg-[#ffe9e6] h-1.5 rounded-full overflow-hidden max-w-xs mx-auto">
+        <div className="w-full bg-[#ffe9e6] h-1 rounded-full overflow-hidden max-w-xs mx-auto">
           <div
             className="h-full bg-[#8b0000] rounded-full transition-all duration-150"
             style={{ width: `${Math.max(15, scrollProgress)}%` }}
