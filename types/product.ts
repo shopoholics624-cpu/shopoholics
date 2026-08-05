@@ -41,6 +41,27 @@ export type LifestyleType =
   | "smarthome"
   | "travel";
 
+export interface FreeGiftBundle {
+  id: string;
+  enabled: boolean;
+  headline?: string;
+  giftTitle: string;
+  giftImage: string;
+  giftOriginalPrice: number;
+  giftDescription: string;
+  promoEndDate?: string;
+  minQuantity?: number;
+  maxGiftsPerOrder?: number;
+  isAutoIncluded: boolean;
+  badgeText?: string;
+  // WooCommerce Ready Metadata
+  wooCommerceCampaignId?: string;
+  startDate?: string;
+  endDate?: string;
+  applicableBrands?: string[];
+  applicableCategories?: CategoryType[];
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -54,7 +75,7 @@ export interface Product {
   originalPrice?: number;
   rating: number;
   reviewCount: number;
-  badge?: "FLAGSHIP" | "NEW" | "LIMITED" | "BEST SELLER" | "HOT" | "EDITOR CHOICE";
+  badge?: "FLAGSHIP" | "NEW" | "LIMITED" | "BEST SELLER" | "HOT" | "EDITOR CHOICE" | "FREE GIFT";
   images: string[];
   featuredImage: string;
   description: string;
@@ -69,6 +90,7 @@ export interface Product {
   emiAvailable?: boolean;
   freeDelivery?: boolean;
   expressDelivery?: boolean;
+  freeGiftBundle?: FreeGiftBundle;
 }
 
 export interface CategoryFilter {

@@ -7,6 +7,16 @@ export interface CartItem {
   quantity: number;
   hasProtectionPlan: boolean;
   protectionPlanCost: number;
+  isFreeGift?: boolean;
+  parentProductId?: string;
+  freeGiftDetails?: {
+    headline: string;
+    giftTitle: string;
+    giftImage: string;
+    giftOriginalPrice: number;
+    giftDescription: string;
+    badgeText: string;
+  };
 }
 
 export interface ShippingAddress {

@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { DemoLink as Link } from "@/components/demo/demo-link";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 export function OurProductsSlider() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   const productCategories = [
     {
@@ -70,69 +71,67 @@ export function OurProductsSlider() {
   const handleScroll = () => {
     if (!scrollRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-    const progress = (scrollLeft / (scrollWidth - clientWidth)) * 100;
+    const maxScroll = scrollWidth - clientWidth;
+    const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
     setScrollProgress(Math.min(100, Math.max(0, progress)));
   };
 
-  const scroll = (direction: "left" | "right") => {
-    if (!scrollRef.current) return;
-    const amount = 260;
-    scrollRef.current.scrollBy({
-      left: direction === "left" ? -amount : amount,
-      behavior: "smooth",
-    });
-  };
+  // Continuous auto smooth scrolling interval
+  useEffect(() => {
+    if (isHovered) return;
+
+    const interval = setInterval(() => {
+      if (!scrollRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      const maxScroll = scrollWidth - clientWidth;
+
+      if (scrollLeft >= maxScroll - 5) {
+        // Loop smoothly back to start
+        scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        scrollRef.current.scrollBy({ left: 1.5, behavior: "auto" });
+      }
+      handleScroll();
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, [isHovered]);
 
   return (
-    <section className="py-8 sm:py-10 bg-white border-b border-[#e3beb8]/30">
+    <section className="py-6 sm:py-10 bg-white border-b border-[#e3beb8]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-        {/* Header & Controls */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        {/* Header (No Side Buttons) */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-[#e3beb8]/40 pb-3">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#8b0000] block mb-0.5">
-              Shop-O-Holics Collection
+            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#8b0000] mb-0.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Shop-O-Holics Collection
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
+            <h2 className="text-xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
               Our Products
             </h2>
             <p className="text-xs text-[#5a403c] mt-0.5">
               Explore our handcrafted luxury hardware categories and precision engineering.
             </p>
           </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => scroll("left")}
-              className="p-2 rounded-lg bg-[#fff8f6] border border-[#e3beb8]/60 text-[#261816] hover:bg-[#ffe9e6] hover:text-[#8b0000] transition-colors shadow-sm min-h-[38px] min-w-[38px] flex items-center justify-center"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              className="p-2 rounded-lg bg-[#8b0000] text-white hover:bg-[#bc0000] transition-colors shadow-md min-h-[38px] min-w-[38px] flex items-center justify-center"
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
         </div>
 
-        {/* Horizontal Scroll Track */}
+        {/* Horizontal Scroll Track with Auto Scroll & Hover Pause */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth no-scrollbar"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth no-scrollbar"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {productCategories.map((item) => (
             <Link
               key={item.id}
               href={item.href}
-              className="w-[200px] sm:w-[230px] shrink-0 group bg-[#fff8f6] rounded-2xl p-3 border border-[#e3beb8]/60 shadow-sm hover:shadow-lg hover:border-[#8b0000]/50 transition-all duration-300 flex flex-col justify-between"
+              className="w-[180px] sm:w-[230px] shrink-0 group bg-[#fff8f6] rounded-2xl p-3 border border-[#e3beb8]/60 shadow-sm hover:shadow-lg hover:border-[#8b0000]/50 transition-all duration-300 flex flex-col justify-between"
             >
-              <div className="relative w-full h-36 sm:h-40 bg-white rounded-xl p-2 border border-[#e3beb8]/30 overflow-hidden flex items-center justify-center">
-                <span className="absolute top-2 left-2 px-2 py-0.5 bg-[#fff8f6] text-[#8b0000] text-[9px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#e3beb8]/40 z-10">
+              <div className="relative w-full h-32 sm:h-40 bg-white rounded-xl p-2 border border-[#e3beb8]/30 overflow-hidden flex items-center justify-center">
+                <span className="absolute top-2 left-2 px-2 py-0.5 bg-[#fff8f6] text-[#8b0000] text-[8px] sm:text-[9px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#e3beb8]/40 z-10">
                   {item.badge}
                 </span>
 
@@ -144,17 +143,17 @@ export function OurProductsSlider() {
                 />
               </div>
 
-              <div className="mt-3 mb-1 text-center space-y-0.5">
+              <div className="mt-2.5 mb-1 text-center space-y-0.5">
                 <h3 className="font-extrabold text-xs sm:text-sm text-[#261816] group-hover:text-[#8b0000] transition-colors line-clamp-1">
                   {item.title}
                 </h3>
-                <p className="text-[11px] text-[#8e706b] font-medium">
+                <p className="text-[10px] sm:text-[11px] text-[#8e706b] font-medium line-clamp-1">
                   {item.subtitle}
                 </p>
               </div>
 
               <div className="pt-2 border-t border-[#ffe9e6] flex items-center justify-center">
-                <span className="text-[11px] font-bold text-[#8b0000] group-hover:underline inline-flex items-center gap-1">
+                <span className="text-[10px] sm:text-[11px] font-bold text-[#8b0000] group-hover:underline inline-flex items-center gap-1">
                   Shop Now <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </span>
               </div>

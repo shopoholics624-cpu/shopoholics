@@ -30,7 +30,7 @@ export function PromoDealsShowcase() {
     {
       id: "deal-3",
       title: "Trade-In Exchange Bonus",
-      tagline: "Get Up to $300 Trade-in Value for Old Devices",
+      tagline: "Get Up to $300 Valuation for Old Devices",
       code: "EXCHANGEPRO",
       badge: "Best Valuation",
       icon: RefreshCw,
@@ -52,54 +52,54 @@ export function PromoDealsShowcase() {
   ];
 
   return (
-    <section className="py-8 sm:py-10 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <section className="py-6 sm:py-10 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
         {/* Section Header */}
-        <div className="flex items-center justify-between border-b border-[#e3beb8]/40 pb-4">
+        <div className="flex items-center justify-between border-b border-[#e3beb8]/40 pb-3">
           <div>
             <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#8b0000] mb-0.5">
-              <Gift className="w-3.5 h-3.5" /> Instant Savings & Special Perks
+              <Gift className="w-3.5 h-3.5 text-[#e51c10]" /> Instant Savings & Special Perks
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
+            <h2 className="text-xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
               Promotional Offers & Bank Deals
             </h2>
           </div>
         </div>
 
-        {/* Promo Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Promo Grid (2x2 on Mobile Responsive) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {deals.map((deal) => {
             const Icon = deal.icon;
             return (
               <div
                 key={deal.id}
-                className={`rounded-2xl p-5 border shadow-sm flex flex-col justify-between space-y-4 ${deal.bgClass}`}
+                className={`rounded-2xl p-3 sm:p-5 border shadow-sm flex flex-col justify-between h-full space-y-3 ${deal.bgClass}`}
               >
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-0.5 bg-white text-[#8b0000] text-[9px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#e3beb8] flex items-center gap-1">
-                      <Icon className="w-3 h-3" /> {deal.badge}
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="px-2 py-0.5 bg-white text-[#8b0000] text-[8px] sm:text-[9px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#e3beb8] flex items-center gap-1">
+                      <Icon className="w-3 h-3 text-[#8b0000]" /> {deal.badge}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-[#8b0000] bg-white/80 px-2 py-0.5 rounded border border-[#e3beb8]">
+                    <span className="text-[9px] sm:text-[10px] font-mono font-bold text-[#8b0000] bg-white/80 px-1.5 py-0.5 rounded border border-[#e3beb8]">
                       {deal.code}
                     </span>
                   </div>
 
-                  <h3 className={`text-base font-extrabold tracking-tight ${deal.textClass}`}>
+                  <h3 className={`text-xs sm:text-base font-extrabold tracking-tight line-clamp-1 ${deal.textClass}`}>
                     {deal.title}
                   </h3>
 
-                  <p className="text-xs text-[#5a403c] leading-relaxed">
+                  <p className="text-[10px] sm:text-xs text-[#5a403c] leading-snug line-clamp-2">
                     {deal.tagline}
                   </p>
                 </div>
 
                 <Link
                   href={deal.ctaHref}
-                  className="w-full py-2.5 rounded-xl bg-[#8b0000] hover:bg-[#bc0000] text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors min-h-[38px]"
+                  className="w-full py-2 sm:py-2.5 rounded-xl bg-[#8b0000] hover:bg-[#bc0000] text-white font-bold text-[10px] sm:text-xs shadow-sm flex items-center justify-center gap-1 transition-colors min-h-[32px] sm:min-h-[38px] mt-auto"
                 >
                   <span>Claim Offer</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
             );

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { DemoLink as Link } from "@/components/demo/demo-link";
-import { ShoppingBag, ArrowLeftRight, Check, Sparkles } from "lucide-react";
+import { ShoppingBag, ArrowLeftRight, Check, Sparkles, Gift } from "lucide-react";
 import { Product } from "@/types/product";
 import { formatPrice } from "@/lib/utils";
 import { useCart } from "@/hooks/use-cart";
@@ -58,7 +58,11 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Top Badge & Action Icons */}
       <div>
         <div className="flex items-center justify-between z-10 relative mb-1.5 sm:mb-2">
-          {product.badge ? (
+          {product.freeGiftBundle ? (
+            <span className="px-2 py-0.5 sm:px-2.5 sm:py-0.5 bg-gradient-to-r from-[#8b0000] to-[#bc0000] text-white text-[9px] sm:text-[10px] font-bold tracking-wider uppercase rounded-full flex items-center gap-1 shadow-sm border border-white/40">
+              <Gift className="w-2.5 h-2.5 sm:w-3 sm:h-3 animate-pulse" /> FREE GIFT
+            </span>
+          ) : product.badge ? (
             <span className="px-2 py-0.5 sm:px-2.5 sm:py-0.5 bg-[#ffe9e6] text-[#8b0000] text-[9px] sm:text-[10px] font-bold tracking-wider uppercase rounded-full flex items-center gap-1 border border-[#e3beb8]">
               <Sparkles className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#e51c10]" /> {product.badge}
             </span>

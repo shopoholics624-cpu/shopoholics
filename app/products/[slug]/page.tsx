@@ -7,6 +7,7 @@ import { useCompare } from "@/hooks/use-compare";
 import { useDemo } from "@/hooks/use-demo";
 import { formatPrice } from "@/lib/utils";
 import { RatingStars } from "@/components/common/rating-stars";
+import { FreeGiftBundleCard } from "@/components/product/free-gift-bundle-card";
 import { InteractiveCanvas } from "@/components/product-detail/interactive-canvas";
 import { DemoLink as Link } from "@/components/demo/demo-link";
 import {
@@ -164,6 +165,13 @@ export default function ProductDetailPage({
               <div className="pt-0.5">
                 <RatingStars rating={product.rating} reviewCount={product.reviewCount} size={15} />
               </div>
+
+              {/* Premium Free Bundle / Free Gift Card */}
+              {product.freeGiftBundle && (
+                <div className="pt-2">
+                  <FreeGiftBundleCard bundle={product.freeGiftBundle} />
+                </div>
+              )}
             </div>
 
             {/* Horizontal Scroll Track for Product Variants Across All Screen Sizes */}
