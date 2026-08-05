@@ -19,7 +19,7 @@ export default function HomePage() {
       {/* Coveritup Style "Our Products" Horizontal Scroll Slider */}
       <OurProductsSlider />
 
-      {/* Shop By Lifestyle Section */}
+      {/* Shop By Category Section */}
       <LifestyleShowcase />
 
       {/* Special Promotional Deals & Bank Offers */}

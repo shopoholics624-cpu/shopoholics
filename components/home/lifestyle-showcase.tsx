@@ -97,10 +97,10 @@ export function LifestyleShowcase() {
               Targeted Hardware Suites
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
-              Shop By Lifestyle
+              Shop By Category
             </h2>
             <p className="text-xs text-[#5a403c] mt-0.5">
-              Explore curated ecosystems tailored for gaming, creation, music, photography, and work.
+              Explore curated hardware ecosystems tailored for gaming, creation, music, photography, and work.
             </p>
           </div>
 
@@ -108,7 +108,7 @@ export function LifestyleShowcase() {
             href="/shop"
             className="inline-flex items-center gap-1 text-xs font-bold text-[#8b0000] hover:underline min-h-[40px]"
           >
-            <span>Explore All Lifestyles</span>
+            <span>Explore All Categories</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>

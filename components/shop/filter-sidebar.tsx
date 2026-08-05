@@ -144,7 +144,7 @@ export function FilterSidebar({
       {/* Lifestyle Select */}
       <div className="space-y-2 pt-4 border-t border-[#ffe9e6]">
         <h4 className="text-xs font-bold uppercase tracking-wider text-[#8e706b]">
-          Shop By Lifestyle
+          Shop By Category
         </h4>
         <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1 scroll-smooth no-scrollbar">
           {lifestyles.map((l) => (
