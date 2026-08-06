@@ -1,10 +1,8 @@
 import { HeroShowcase } from "@/components/home/hero-showcase";
 import { OurProductsSlider } from "@/components/home/our-products-slider";
-import { LifestyleShowcase } from "@/components/home/lifestyle-showcase";
-import { PromoDealsShowcase } from "@/components/home/promo-deals-showcase";
-import { BentoShowcase } from "@/components/home/bento-showcase";
 import { BrandsShowcase } from "@/components/home/brands-showcase";
-import { BudgetShowcase } from "@/components/home/budget-showcase";
+import { BentoShowcase } from "@/components/home/bento-showcase";
+import { PromoDealsShowcase } from "@/components/home/promo-deals-showcase";
 import { ProductGrid } from "@/components/common/product-grid";
 import { PRODUCTS } from "@/constants/products";
 import { DemoLink as Link } from "@/components/demo/demo-link";
@@ -13,39 +11,33 @@ import { ArrowRight, Sparkles } from "lucide-react";
 export default function HomePage() {
   return (
     <div className="space-y-4 sm:space-y-6 pb-12 bg-white">
-      {/* Coveritup Style Hero Showcase with Banner Slider */}
+      {/* 1. Hero Section */}
       <HeroShowcase />
 
-      {/* Coveritup Style "Our Products" Horizontal Scroll Slider */}
+      {/* 2. Our Products */}
       <OurProductsSlider />
 
-      {/* Shop By Category Section */}
-      <LifestyleShowcase />
-
-      {/* Special Promotional Deals & Bank Offers */}
-      <PromoDealsShowcase />
-
-      {/* E-commerce Bento Grid Showcase (Featured Products, Deals & Best Sellers) */}
-      <BentoShowcase />
-
-      {/* Shop By Brand Showcase */}
+      {/* 3. Shop By Brand */}
       <BrandsShowcase />
 
-      {/* Shop By Budget Showcase */}
-      <BudgetShowcase />
+      {/* 4. Best Sellers & Trending Deals */}
+      <BentoShowcase />
 
-      {/* Spotlight Hardware Showcase Grid */}
+      {/* 5. Promotional Offers & Bank Deals */}
+      <PromoDealsShowcase />
+
+      {/* 6. Flagship Devices & Audio */}
       <section className="py-8 sm:py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e3beb8]/40 pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D4D3CD]/60 pb-4">
             <div>
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8b0000] uppercase tracking-wider mb-1">
                 <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Curated Hardware Selection
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1C1C1A] tracking-tight">
                 Flagship Devices & Audio
               </h2>
-              <p className="text-xs sm:text-sm text-[#5a403c] mt-0.5">
+              <p className="text-xs sm:text-sm text-[#5A5954] mt-0.5">
                 Every device features grade 5 titanium construction and custom acoustic engineering.
               </p>
             </div>

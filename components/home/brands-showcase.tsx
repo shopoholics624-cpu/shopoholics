@@ -51,15 +51,15 @@ export function BrandsShowcase() {
             <Link
               key={b.name}
               href={b.href}
-              className="group bg-[#fff8f6] rounded-2xl p-3.5 border border-[#e3beb8]/60 shadow-sm hover:shadow-md hover:border-[#8b0000]/50 transition-all duration-300 flex flex-col items-center justify-center text-center space-y-1"
+              className="group bg-[#F1F0EC] hover:bg-[#E6E5DF] rounded-2xl p-3.5 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center space-y-1"
             >
               <span className="text-2xl group-hover:scale-110 transition-transform duration-300">
                 {b.logo}
               </span>
-              <h3 className="font-extrabold text-xs text-[#261816] group-hover:text-[#8b0000] transition-colors">
+              <h3 className="font-extrabold text-xs text-[#1C1C1A] group-hover:text-[#8b0000] transition-colors">
                 {b.name}
               </h3>
-              <p className="text-[10px] text-[#8e706b] line-clamp-1 font-medium">
+              <p className="text-[10px] text-[#5A5954] line-clamp-1 font-medium">
                 {b.tagline}
               </p>
             </Link>

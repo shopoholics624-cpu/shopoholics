@@ -53,7 +53,7 @@ export function ProductCard({ product }: ProductCardProps) {
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-      className="group relative bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-[#e3beb8]/60 shadow-sm hover:shadow-lg hover:border-[#8b0000]/40 flex flex-col justify-between overflow-hidden h-full"
+      className="group relative bg-white hover:bg-[#F1F0EC] rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] flex flex-col justify-between overflow-hidden h-full transition-all duration-300"
     >
       {/* Top Badge & Action Icons */}
       <div>

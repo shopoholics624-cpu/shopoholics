@@ -1,13 +1,13 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { DemoLink as Link } from "@/components/demo/demo-link";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 export function OurProductsSlider() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
 
   const productCategories = [
     {
@@ -68,39 +68,57 @@ export function OurProductsSlider() {
     },
   ];
 
-  const handleScroll = () => {
+  const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
     const maxScroll = scrollWidth - clientWidth;
     const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0;
     setScrollProgress(Math.min(100, Math.max(0, progress)));
-  };
+  }, []);
 
-  // Continuous auto smooth scrolling interval
+  // Ensure slider starts at left position 0 on mount
   useEffect(() => {
-    if (isHovered) return;
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+    }
+    handleScroll();
+  }, [handleScroll]);
 
-    const interval = setInterval(() => {
-      if (!scrollRef.current) return;
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      const maxScroll = scrollWidth - clientWidth;
+  // Fluid smooth auto-scrolling that respects touch & mouse interactions
+  useEffect(() => {
+    if (isInteracting) return;
 
-      if (scrollLeft >= maxScroll - 5) {
-        // Loop smoothly back to start
-        scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
-      } else {
-        scrollRef.current.scrollBy({ left: 1.5, behavior: "auto" });
+    let animationFrameId: number;
+    let lastTime = performance.now();
+
+    const animateScroll = (time: number) => {
+      const delta = time - lastTime;
+      if (delta > 30) {
+        lastTime = time;
+        if (scrollRef.current) {
+          const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+          const maxScroll = scrollWidth - clientWidth;
+
+          if (scrollLeft >= maxScroll - 2) {
+            // Stop auto-scroll when reaching the end of the track
+            return;
+          } else {
+            scrollRef.current.scrollLeft += 1;
+          }
+          handleScroll();
+        }
       }
-      handleScroll();
-    }, 30);
+      animationFrameId = requestAnimationFrame(animateScroll);
+    };
 
-    return () => clearInterval(interval);
-  }, [isHovered]);
+    animationFrameId = requestAnimationFrame(animateScroll);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isInteracting, handleScroll]);
 
   return (
     <section className="py-6 sm:py-10 bg-white border-b border-[#e3beb8]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
-        {/* Header (No Side Buttons) */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-[#e3beb8]/40 pb-3">
           <div>
             <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#8b0000] mb-0.5">
@@ -115,23 +133,30 @@ export function OurProductsSlider() {
           </div>
         </div>
 
-        {/* Horizontal Scroll Track with Auto Scroll & Hover Pause */}
+        {/* Horizontal Touch Momentum Scroll Track */}
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth no-scrollbar"
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          onMouseEnter={() => setIsInteracting(true)}
+          onMouseLeave={() => setIsInteracting(false)}
+          onTouchStart={() => setIsInteracting(true)}
+          onTouchEnd={() => setIsInteracting(false)}
+          onTouchCancel={() => setIsInteracting(false)}
+          className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x overscroll-x-contain"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            WebkitOverflowScrolling: "touch",
+          }}
         >
           {productCategories.map((item) => (
             <Link
               key={item.id}
               href={item.href}
-              className="w-[180px] sm:w-[230px] shrink-0 group bg-[#fff8f6] rounded-2xl p-3 border border-[#e3beb8]/60 shadow-sm hover:shadow-lg hover:border-[#8b0000]/50 transition-all duration-300 flex flex-col justify-between"
+              className="w-[180px] sm:w-[230px] shrink-0 group bg-[#F1F0EC] hover:bg-[#E6E5DF] rounded-2xl p-3 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
             >
-              <div className="relative w-full h-32 sm:h-40 bg-white rounded-xl p-2 border border-[#e3beb8]/30 overflow-hidden flex items-center justify-center">
-                <span className="absolute top-2 left-2 px-2 py-0.5 bg-[#fff8f6] text-[#8b0000] text-[8px] sm:text-[9px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#e3beb8]/40 z-10">
+              <div className="relative w-full h-32 sm:h-40 bg-white rounded-xl p-2 border border-[#D4D3CD]/60 overflow-hidden flex items-center justify-center">
+                <span className="absolute top-2 left-2 px-2 py-0.5 bg-white text-[#1C1C1A] text-[8px] sm:text-[9px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#D4D3CD] z-10">
                   {item.badge}
                 </span>
 
@@ -144,15 +169,15 @@ export function OurProductsSlider() {
               </div>
 
               <div className="mt-2.5 mb-1 text-center space-y-0.5">
-                <h3 className="font-extrabold text-xs sm:text-sm text-[#261816] group-hover:text-[#8b0000] transition-colors line-clamp-1">
+                <h3 className="font-extrabold text-xs sm:text-sm text-[#1C1C1A] group-hover:text-[#8b0000] transition-colors line-clamp-1">
                   {item.title}
                 </h3>
-                <p className="text-[10px] sm:text-[11px] text-[#8e706b] font-medium line-clamp-1">
+                <p className="text-[10px] sm:text-[11px] text-[#5A5954] font-medium line-clamp-1">
                   {item.subtitle}
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-[#ffe9e6] flex items-center justify-center">
+              <div className="pt-2 border-t border-[#D4D3CD]/50 flex items-center justify-center">
                 <span className="text-[10px] sm:text-[11px] font-bold text-[#8b0000] group-hover:underline inline-flex items-center gap-1">
                   Shop Now <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </span>
@@ -162,9 +187,9 @@ export function OurProductsSlider() {
         </div>
 
         {/* Progress Indicator */}
-        <div className="w-full bg-[#ffe9e6] h-1 rounded-full overflow-hidden max-w-xs mx-auto">
+        <div className="w-full bg-[#D4D3CD]/50 h-1.5 rounded-full overflow-hidden max-w-xs mx-auto">
           <div
-            className="h-full bg-[#8b0000] rounded-full transition-all duration-150"
+            className="h-full bg-[#3D3C38] rounded-full transition-all duration-150 shadow-sm"
             style={{ width: `${Math.max(15, scrollProgress)}%` }}
           />
         </div>

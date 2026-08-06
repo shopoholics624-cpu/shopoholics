@@ -181,8 +181,8 @@ export default function ProductDetailPage({
               </label>
 
               <div
-                className="flex gap-2.5 overflow-x-auto pb-2.5 scroll-smooth no-scrollbar"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                className="flex gap-2.5 overflow-x-auto pb-2.5 no-scrollbar touch-pan-x overscroll-x-contain"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
               >
                 {product.variants.map((variant, idx) => (
                   <button
