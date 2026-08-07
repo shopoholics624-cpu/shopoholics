@@ -133,7 +133,7 @@ export default function ProductDetailPage({
               <img
                 src={product.images[selectedImageIndex] || product.featuredImage}
                 alt={product.title}
-                className="w-full h-[260px] sm:h-[340px] lg:h-[380px] object-cover rounded-xl sm:rounded-2xl transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-[260px] sm:h-[340px] lg:h-[380px] object-cover rounded-xl sm:rounded-2xl"
               />
 
               {product.badge && (
@@ -143,7 +143,7 @@ export default function ProductDetailPage({
               )}
 
               {/* Click to Zoom Overlay Badge */}
-              <span className="absolute bottom-4 right-4 p-2 bg-black/60 backdrop-blur-md text-white rounded-full shadow-md opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all flex items-center gap-1 text-[10px] sm:text-xs font-medium z-10">
+              <span className="absolute bottom-4 right-4 p-2 bg-black/60 backdrop-blur-md text-white rounded-full shadow-md flex items-center gap-1 text-[10px] sm:text-xs font-medium z-10">
                 <ZoomIn className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -200,13 +200,6 @@ export default function ProductDetailPage({
                 <RatingStars rating={product.rating} reviewCount={product.reviewCount} size={12} />
                 <span className="text-[10px] text-[#8e706b]">| ID: {product.id}</span>
               </div>
-
-              {/* Dynamic Compact Free Gift Bundle Card */}
-              {product.freeGiftBundle && (
-                <div className="pt-1.5">
-                  <FreeGiftBundleCard bundle={product.freeGiftBundle} />
-                </div>
-              )}
             </div>
 
             {/* Horizontal Scroll Track for Product Variants Across All Screen Sizes */}
@@ -305,6 +298,13 @@ export default function ProductDetailPage({
                 <span className="text-[9px] font-bold text-[#261816] block">30-Day Return</span>
               </div>
             </div>
+
+            {/* Dynamic Compact Free Gift Bundle Card (Positioned after 2-Yr Warranty, Express Courier & 30-Day Return) */}
+            {product.freeGiftBundle && (
+              <div className="pt-2 border-t border-[#e3beb8]/40">
+                <FreeGiftBundleCard bundle={product.freeGiftBundle} />
+              </div>
+            )}
           </div>
         </div>
 
