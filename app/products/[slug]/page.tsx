@@ -20,6 +20,9 @@ import {
   Sparkles,
   ArrowLeft,
   ChevronRight,
+  ChevronLeft,
+  X,
+  ZoomIn,
 } from "lucide-react";
 
 export default function ProductDetailPage({
@@ -41,18 +44,31 @@ export default function ProductDetailPage({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<"specs" | "features" | "warranty">("specs");
   const [added, setAdded] = useState(false);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const activeVariant = product.variants[selectedVariantIndex] || product.variants[0];
   const inCompare = isInCompare(product.id);
 
-  // Auto-scroll product gallery images every 3 seconds
+  // Auto-scroll product gallery images every 3 seconds if modal is closed
   useEffect(() => {
-    if (!product.images || product.images.length <= 1) return;
+    if (isLightboxOpen || !product.images || product.images.length <= 1) return;
     const interval = setInterval(() => {
       setSelectedImageIndex((prev) => (prev + 1) % product.images.length);
-    }, 3000);
+    }, 3500);
     return () => clearInterval(interval);
-  }, [product.images]);
+  }, [product.images, isLightboxOpen]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (isLightboxOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isLightboxOpen]);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     addToCart(product, activeVariant);
@@ -70,6 +86,14 @@ export default function ProductDetailPage({
     } else {
       addToCompare(product);
     }
+  };
+
+  const handlePrevImage = () => {
+    setSelectedImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+  };
+
+  const handleNextImage = () => {
+    setSelectedImageIndex((prev) => (prev + 1) % product.images.length);
   };
 
   return (
@@ -92,31 +116,15 @@ export default function ProductDetailPage({
 
         {/* Main Product Hero Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-          {/* Left Media Gallery Column */}
-          <div className="lg:col-span-7 space-y-4">
-            <div className="relative rounded-3xl bg-white p-3 sm:p-4 border border-[#e3beb8]/60 shadow-lux overflow-hidden">
-              {/* Main Image */}
-              {/* eslint-disable-next-img-element */}
-              <img
-                src={product.images[selectedImageIndex] || product.featuredImage}
-                alt={product.title}
-                className="w-full h-[320px] sm:h-[480px] object-cover rounded-2xl transition-all duration-500"
-              />
-
-              {product.badge && (
-                <span className="absolute top-6 left-6 px-3.5 py-1 bg-[#8b0000] text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> {product.badge}
-                </span>
-              )}
-            </div>
-
-            {/* Thumbnail Row */}
-            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 scroll-smooth no-scrollbar">
+          {/* Left Media Gallery Column (Thumbnails at LEFT of Main Image) */}
+          <div className="lg:col-span-7 flex flex-col md:flex-row gap-4 items-start">
+            {/* Extra Images Thumbnail Track (Positions to the LEFT on tablet/desktop viewports) */}
+            <div className="order-2 md:order-1 flex flex-row md:flex-col gap-3 sm:gap-4 overflow-x-auto md:overflow-y-auto overflow-y-hidden md:max-h-[460px] pb-2 md:pb-0 md:pr-1 shrink-0 no-scrollbar">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
+                  className={`w-16 h-16 sm:w-20 sm:h-20 md:w-18 md:h-18 lg:w-20 lg:h-20 rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
                     selectedImageIndex === idx
                       ? "border-[#8b0000] shadow-md scale-105"
                       : "border-[#e3beb8]/60 opacity-70 hover:opacity-100"
@@ -126,6 +134,31 @@ export default function ProductDetailPage({
                   <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
                 </button>
               ))}
+            </div>
+
+            {/* Main Image Container (RIGHT of thumbnails) */}
+            <div
+              onClick={() => setIsLightboxOpen(true)}
+              className="order-1 md:order-2 relative rounded-3xl bg-white p-3 sm:p-4 border border-[#e3beb8]/60 shadow-lux overflow-hidden flex-1 w-full cursor-zoom-in group"
+            >
+              {/* Main Image */}
+              {/* eslint-disable-next-img-element */}
+              <img
+                src={product.images[selectedImageIndex] || product.featuredImage}
+                alt={product.title}
+                className="w-full h-[300px] sm:h-[380px] md:h-[360px] lg:h-[460px] object-cover rounded-2xl transition-transform duration-500 group-hover:scale-105"
+              />
+
+              {product.badge && (
+                <span className="absolute top-6 left-6 px-3.5 py-1 bg-[#8b0000] text-white text-xs font-bold uppercase tracking-wider rounded-full shadow-lg flex items-center gap-1.5 z-10">
+                  <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> {product.badge}
+                </span>
+              )}
+
+              {/* Click to Zoom Overlay Badge */}
+              <span className="absolute bottom-6 right-6 p-2.5 bg-black/60 backdrop-blur-md text-white rounded-full shadow-lg opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all flex items-center gap-1 text-xs font-medium z-10">
+                <ZoomIn className="w-4 h-4" />
+              </span>
             </div>
           </div>
 
@@ -158,15 +191,12 @@ export default function ProductDetailPage({
                 </div>
               </div>
 
-              <p className="text-xs text-[#5a403c] leading-relaxed">
-                {product.tagline}
-              </p>
-
-              <div className="pt-0.5">
-                <RatingStars rating={product.rating} reviewCount={product.reviewCount} size={15} />
+              <div className="flex items-center gap-3 pt-1">
+                <RatingStars rating={product.rating} reviewCount={product.reviewCount} />
+                <span className="text-xs text-[#8e706b]">| Model ID: {product.id}</span>
               </div>
 
-              {/* Premium Free Bundle / Free Gift Card */}
+              {/* Dynamic Free Gift Bundle Card */}
               {product.freeGiftBundle && (
                 <div className="pt-2">
                   <FreeGiftBundleCard bundle={product.freeGiftBundle} />
@@ -211,121 +241,221 @@ export default function ProductDetailPage({
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* High-Contrast Action Buttons */}
             <div className="space-y-3 pt-2">
-              <button
-                onClick={handleAddToCart}
-                className={`w-full py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3 ${
-                  added
-                    ? "bg-emerald-700 text-white"
-                    : "bg-[#8b0000] hover:bg-[#bc0000] text-white"
-                }`}
-              >
-                {added ? (
-                  <>
-                    <Check className="w-5 h-5" /> Added to Shopping Bag!
-                  </>
-                ) : (
-                  <>
-                    <ShoppingBag className="w-5 h-5" /> Add to Bag ({formatPrice(activeVariant.price)})
-                  </>
-                )}
-              </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  className={`w-full py-3.5 px-6 rounded-2xl font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-all duration-300 min-h-[48px] ${
+                    added
+                      ? "bg-emerald-700 text-white"
+                      : "bg-[#8b0000] hover:bg-[#bc0000] text-white"
+                  }`}
+                >
+                  {added ? (
+                    <>
+                      <Check className="w-4 h-4" /> Added to Bag
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag className="w-4 h-4" /> Add to Cart
+                    </>
+                  )}
+                </button>
+
+                <Link
+                  href="/checkout/shipping"
+                  onClick={handleAddToCart}
+                  className="w-full py-3.5 px-6 rounded-2xl bg-[#261816] hover:bg-[#3d2c2a] text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-all min-h-[48px]"
+                >
+                  Buy Now
+                </Link>
+              </div>
 
               <button
                 onClick={handleToggleCompare}
-                className={`w-full py-3.5 rounded-xl font-bold text-xs transition-all border-2 flex items-center justify-center gap-2 ${
+                className={`w-full py-2.5 px-4 rounded-2xl border text-xs font-bold flex items-center justify-center gap-2 transition-all min-h-[40px] ${
                   inCompare
                     ? "bg-[#8b0000] text-white border-[#8b0000]"
-                    : "border-[#8b0000] text-[#8b0000] hover:bg-[#fff0ee]"
+                    : "border-[#e3beb8] text-[#5a403c] hover:border-[#8b0000] hover:text-[#8b0000]"
                 }`}
               >
-                <ArrowLeftRight className="w-4 h-4" />
-                {inCompare ? "Remove from Compare Matrix" : "Add to Compare Matrix"}
+                <ArrowLeftRight className="w-3.5 h-3.5" />
+                {inCompare ? "Remove from Comparison" : "Add to Hardware Comparison"}
               </button>
             </div>
 
             {/* Value Highlights */}
-            <div className="space-y-2 pt-4 border-t border-[#ffe9e6] text-xs text-[#5a403c]">
-              <div className="flex items-center gap-2.5">
-                <Truck className="w-4 h-4 text-[#8b0000]" />
-                <span>Free Insured Express Courier Delivery</span>
+            <div className="grid grid-cols-3 gap-2 pt-4 border-t border-[#e3beb8]/40 text-center">
+              <div className="p-2 space-y-1">
+                <ShieldCheck className="w-5 h-5 text-[#8b0000] mx-auto" />
+                <span className="text-[10px] font-bold text-[#261816] block">2-Yr Warranty</span>
               </div>
-              <div className="flex items-center gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-[#8b0000]" />
-                <span>2-Year Crimson Luxe Official Hardware Protection</span>
+              <div className="p-2 space-y-1 border-x border-[#e3beb8]/40">
+                <Truck className="w-5 h-5 text-[#8b0000] mx-auto" />
+                <span className="text-[10px] font-bold text-[#261816] block">Express Courier</span>
               </div>
-              <div className="flex items-center gap-2.5">
-                <RotateCcw className="w-4 h-4 text-[#8b0000]" />
-                <span>30-Day Hassle-Free Unboxing Guarantee</span>
+              <div className="p-2 space-y-1">
+                <RotateCcw className="w-5 h-5 text-[#8b0000] mx-auto" />
+                <span className="text-[10px] font-bold text-[#261816] block">30-Day Return</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* GSAP Scroll Trigger Interactive Section */}
-        <InteractiveCanvas />
-
-        {/* Product Technical Specifications Tabs */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
-          <div className="flex border-b border-[#ffe9e6] gap-8">
+        {/* Tabbed Specifications & Features Showcase */}
+        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#e3beb8]/60 shadow-lux space-y-8">
+          <div className="flex border-b border-[#e3beb8]/40 gap-8">
             <button
               onClick={() => setActiveTab("specs")}
-              className={`pb-4 text-sm font-bold transition-colors relative ${
+              className={`pb-3 text-sm font-extrabold tracking-tight transition-all border-b-2 ${
                 activeTab === "specs"
-                  ? "text-[#8b0000]"
-                  : "text-[#5a403c] hover:text-[#8b0000]"
+                  ? "border-[#8b0000] text-[#8b0000]"
+                  : "border-transparent text-[#8e706b] hover:text-[#261816]"
               }`}
             >
               Technical Specifications
-              {activeTab === "specs" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8b0000] rounded-full" />
-              )}
             </button>
-
             <button
               onClick={() => setActiveTab("features")}
-              className={`pb-4 text-sm font-bold transition-colors relative ${
+              className={`pb-3 text-sm font-extrabold tracking-tight transition-all border-b-2 ${
                 activeTab === "features"
-                  ? "text-[#8b0000]"
-                  : "text-[#5a403c] hover:text-[#8b0000]"
+                  ? "border-[#8b0000] text-[#8b0000]"
+                  : "border-transparent text-[#8e706b] hover:text-[#261816]"
               }`}
             >
-              Key Features
-              {activeTab === "features" && (
-                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#8b0000] rounded-full" />
-              )}
+              Engineering Features
+            </button>
+            <button
+              onClick={() => setActiveTab("warranty")}
+              className={`pb-3 text-sm font-extrabold tracking-tight transition-all border-b-2 ${
+                activeTab === "warranty"
+                  ? "border-[#8b0000] text-[#8b0000]"
+                  : "border-transparent text-[#8e706b] hover:text-[#261816]"
+              }`}
+            >
+              Warranty & Service
             </button>
           </div>
 
-          {activeTab === "specs" ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {activeTab === "specs" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {product.specs.map((spec, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-4 rounded-2xl bg-[#fff8f6] border border-[#e3beb8]/40"
-                >
-                  <span className="text-xs font-semibold text-[#8e706b]">
+                <div key={idx} className="p-4 rounded-2xl bg-[#fff8f6] border border-[#e3beb8]/40 space-y-1">
+                  <span className="text-[10px] font-bold text-[#8e706b] uppercase tracking-wider block">
                     {spec.name}
                   </span>
-                  <span className="text-xs font-bold text-[#261816]">
+                  <span className="text-xs sm:text-sm font-bold text-[#261816] block">
                     {spec.value}
                   </span>
                 </div>
               ))}
             </div>
-          ) : (
-            <ul className="space-y-3">
-              {product.features.map((feature, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm text-[#261816]">
-                  <Check className="w-5 h-5 text-[#8b0000] shrink-0 mt-0.5" />
-                  <span>{feature}</span>
+          )}
+
+          {activeTab === "features" && (
+            <div className="space-y-4">
+              <p className="text-xs sm:text-sm text-[#5a403c] leading-relaxed">
+                {product.description}
+              </p>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <li className="flex items-center gap-2 text-xs font-semibold text-[#261816]">
+                  <Check className="w-4 h-4 text-[#8b0000]" /> Precision Grade 5 Titanium Chassis
                 </li>
-              ))}
-            </ul>
+                <li className="flex items-center gap-2 text-xs font-semibold text-[#261816]">
+                  <Check className="w-4 h-4 text-[#8b0000]" /> Custom High-Excursion Acoustic Drivers
+                </li>
+                <li className="flex items-center gap-2 text-xs font-semibold text-[#261816]">
+                  <Check className="w-4 h-4 text-[#8b0000]" /> Neural Engine Hardware Acceleration
+                </li>
+                <li className="flex items-center gap-2 text-xs font-semibold text-[#261816]">
+                  <Check className="w-4 h-4 text-[#8b0000]" /> Insured Global Express Shipping Included
+                </li>
+              </ul>
+            </div>
+          )}
+
+          {activeTab === "warranty" && (
+            <div className="space-y-3 text-xs text-[#5a403c] leading-relaxed">
+              <p className="font-semibold text-[#261816]">
+                Every Shop-O-Holics flagship hardware unit includes 24 months of worldwide concierge warranty coverage.
+              </p>
+              <p>
+                In the event of accidental damage or technical defects, our hardware replacement program guarantees express courier dispatch of a replacement unit within 24 hours.
+              </p>
+            </div>
           )}
         </div>
+
+        {/* 3D Interactive Canvas Preview Section */}
+        <InteractiveCanvas />
       </div>
+
+      {/* Lightbox High-Resolution Image Preview Modal */}
+      {isLightboxOpen && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-lg flex flex-col items-center justify-between p-4 sm:p-6 animate-in fade-in duration-200">
+          {/* Top Bar */}
+          <div className="w-full max-w-6xl flex items-center justify-between text-white z-10 pt-2">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-sm sm:text-base tracking-tight">{product.title}</span>
+              <span className="text-xs text-white/60">
+                ({selectedImageIndex + 1} / {product.images.length})
+              </span>
+            </div>
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              aria-label="Close Lightbox"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Main Large Image & Cycle Arrows */}
+          <div className="relative max-w-5xl w-full flex-1 flex items-center justify-center my-4">
+            <button
+              onClick={handlePrevImage}
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all z-20 cursor-pointer shadow-lg backdrop-blur-md"
+              aria-label="Previous Image"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            {/* eslint-disable-next-img-element */}
+            <img
+              src={product.images[selectedImageIndex] || product.featuredImage}
+              alt={`${product.title} expanded view`}
+              className="max-h-[70vh] max-w-full object-contain rounded-2xl shadow-2xl transition-all duration-300"
+            />
+
+            <button
+              onClick={handleNextImage}
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/25 text-white transition-all z-20 cursor-pointer shadow-lg backdrop-blur-md"
+              aria-label="Next Image"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Bottom Thumbnail Strip inside Lightbox Modal */}
+          <div className="w-full max-w-xl flex gap-3 overflow-x-auto justify-center pb-2 no-scrollbar z-10">
+            {product.images.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setSelectedImageIndex(idx)}
+                className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
+                  selectedImageIndex === idx
+                    ? "border-white scale-110 shadow-lg"
+                    : "border-white/30 opacity-60 hover:opacity-100"
+                }`}
+              >
+                {/* eslint-disable-next-img-element */}
+                <img src={img} alt={`Modal thumbnail ${idx}`} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
