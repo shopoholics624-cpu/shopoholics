@@ -53,7 +53,7 @@ export default function RootLayout({
           <CartProvider>
             <CompareProvider>
               <Header />
-              <main className="flex-1 pt-20">{children}</main>
+              <main className="flex-1 pt-[72px] sm:pt-[76px]">{children}</main>
               <Footer />
               <MobileNav />
             </CompareProvider>

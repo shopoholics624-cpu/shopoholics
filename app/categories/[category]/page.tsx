@@ -35,9 +35,6 @@ export default function CategoryPage({
         {/* Category Hero */}
         <div className="bg-gradient-to-r from-[#610000] to-[#8b0000] text-white p-8 sm:p-12 rounded-3xl shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="space-y-3 max-w-xl">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-semibold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Dedicated Category View
-            </span>
             <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
               {categoryTitle} Flagships
             </h1>

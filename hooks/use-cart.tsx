@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from "react";
-import { CartItem, ShippingAddress, PaymentDetails } from "@/types/cart";
+import { CartItem, ShippingAddress, PaymentDetails, GstDetails } from "@/types/cart";
 import { Product, ProductVariant } from "@/types/product";
 import { getFreeGiftBundle, createFreeGiftCartItem } from "@/lib/bundle-utils";
 
@@ -24,6 +24,8 @@ interface CartContextType {
   setShippingAddress: (addr: ShippingAddress) => void;
   paymentDetails: PaymentDetails;
   setPaymentDetails: (payment: PaymentDetails) => void;
+  gstDetails: GstDetails;
+  setGstDetails: (gst: GstDetails) => void;
 }
 
 const defaultShipping: ShippingAddress = {
@@ -46,12 +48,20 @@ const defaultPayment: PaymentDetails = {
   cardName: "ALEXANDER WRIGHT",
 };
 
+const defaultGstDetails: GstDetails = {
+  isGstRequired: false,
+  gstin: "27AAAAA0000A1Z5",
+  businessName: "Crimson Luxe Enterprises Pvt Ltd",
+  businessAddress: "742 Fifth Avenue, Suite 1800, New York, NY 10019",
+};
+
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(defaultShipping);
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails>(defaultPayment);
+  const [gstDetails, setGstDetails] = useState<GstDetails>(defaultGstDetails);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -191,6 +201,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setShippingAddress,
         paymentDetails,
         setPaymentDetails,
+        gstDetails,
+        setGstDetails,
       }}
     >
       {children}

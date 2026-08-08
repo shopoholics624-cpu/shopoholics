@@ -88,25 +88,22 @@ export function LifestyleShowcase() {
   ];
 
   return (
-    <section className="py-6 sm:py-10 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+    <section className="py-10 sm:py-16 lg:py-20 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-[#e3beb8]/40 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e3beb8]/40 pb-5">
           <div>
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#8b0000] block mb-0.5">
-              Targeted Hardware Suites
-            </span>
-            <h2 className="text-xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#261816] tracking-tight">
               Shop By Category
             </h2>
-            <p className="text-xs text-[#5a403c] mt-0.5">
+            <p className="text-sm sm:text-base text-[#5a403c] mt-1.5 font-medium">
               Explore curated hardware ecosystems tailored for gaming, creation, music, photography, and work.
             </p>
           </div>
 
           <Link
             href="/shop"
-            className="inline-flex items-center gap-1 text-xs font-bold text-[#8b0000] hover:underline min-h-[36px]"
+            className="inline-flex items-center gap-1 text-xs font-bold text-[#8b0000] hover:underline min-h-[40px]"
           >
             <span>Explore All Categories</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -121,7 +118,7 @@ export function LifestyleShowcase() {
               <Link
                 key={item.id}
                 href={item.href}
-                className="group relative rounded-2xl overflow-hidden bg-[#fff8f6] border border-[#e3beb8]/60 shadow-sm hover:shadow-xl hover:border-[#8b0000]/40 transition-all duration-300 flex flex-col justify-between h-[190px] sm:h-[250px] p-3 sm:p-4"
+                className="group relative z-0 hover:z-20 rounded-2xl overflow-hidden bg-[#fff8f6] border border-[#e3beb8]/60 shadow-sm hover:shadow-xl hover:border-[#8b0000]/40 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-[190px] sm:h-[250px] p-3 sm:p-4"
               >
                 {/* Background Cover Image with Hover Zoom */}
                 <div className="absolute inset-0 z-0">

@@ -116,18 +116,15 @@ export function OurProductsSlider() {
   }, [isInteracting, handleScroll]);
 
   return (
-    <section className="py-6 sm:py-10 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+    <section className="py-10 sm:py-16 lg:py-20 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b border-[#e3beb8]/40 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e3beb8]/40 pb-5">
           <div>
-            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#8b0000] mb-0.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Shop-O-Holics Collection
-            </span>
-            <h2 className="text-xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#261816] tracking-tight">
               Our Products
             </h2>
-            <p className="text-xs text-[#5a403c] mt-0.5">
+            <p className="text-sm sm:text-base text-[#5a403c] mt-1.5 font-medium">
               Explore our handcrafted luxury hardware categories and precision engineering.
             </p>
           </div>
@@ -142,7 +139,7 @@ export function OurProductsSlider() {
           onTouchStart={() => setIsInteracting(true)}
           onTouchEnd={() => setIsInteracting(false)}
           onTouchCancel={() => setIsInteracting(false)}
-          className="flex gap-3 sm:gap-4 overflow-x-auto pb-3 pt-1 no-scrollbar touch-pan-x overscroll-x-contain"
+          className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 pt-2 no-scrollbar touch-pan-x overscroll-x-contain"
           style={{
             scrollbarWidth: "none",
             msOverflowStyle: "none",
@@ -153,7 +150,7 @@ export function OurProductsSlider() {
             <Link
               key={item.id}
               href={item.href}
-              className="w-[180px] sm:w-[230px] shrink-0 group bg-[#F1F0EC] hover:bg-[#E6E5DF] rounded-2xl p-3 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+              className="w-[180px] sm:w-[230px] shrink-0 group relative z-0 hover:z-20 bg-[#F1F0EC] hover:bg-[#E6E5DF] rounded-2xl p-3 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
             >
               <div className="relative w-full h-32 sm:h-40 bg-white rounded-xl p-2 border border-[#D4D3CD]/60 overflow-hidden flex items-center justify-center">
                 <span className="absolute top-2 left-2 px-2 py-0.5 bg-white text-[#1C1C1A] text-[8px] sm:text-[9px] font-bold uppercase tracking-wider rounded-full shadow-sm border border-[#D4D3CD] z-10">

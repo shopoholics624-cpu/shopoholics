@@ -62,6 +62,76 @@ export interface FreeGiftBundle {
   applicableCategories?: CategoryType[];
 }
 
+export interface ProductStructuredInfo {
+  overview?: string;
+  keyFeatures?: string[];
+  whatsInTheBox?: string[];
+  warranty?: string;
+  dimensions?: {
+    length?: number;
+    width?: number;
+    height?: number;
+    unit: "in" | "cm" | "mm";
+  };
+  weight?: {
+    value: number;
+    unit: "g" | "kg" | "lb" | "oz";
+  };
+  // Category-Specific Dynamic Specification Fields
+  specs?: {
+    // Smartphone
+    processor?: string;
+    displaySize?: string;
+    displayResolution?: string;
+    refreshRate?: string;
+    cameraMain?: string;
+    cameraFront?: string;
+    batteryCapacity?: string;
+    chargingSpeed?: string;
+    os?: string;
+    connectivity?: string;
+    storage?: string;
+    memory?: string;
+    security?: string;
+    sensors?: string;
+    // Laptop / Desktop
+    graphics?: string;
+    keyboardTrackpad?: string;
+    wireless?: string;
+    ports?: string;
+    audio?: string;
+    webcam?: string;
+    // TV
+    hdrSupport?: string;
+    pictureTechnology?: string;
+    smartTvPlatform?: string;
+    powerConsumption?: string;
+    // Headphones / Audio
+    driverSize?: string;
+    soundProfile?: string;
+    noiseCancellation?: string;
+    microphones?: string;
+    bluetoothVersion?: string;
+    batteryLife?: string;
+    controls?: string;
+    waterResistance?: string;
+    compatibility?: string;
+    // Camera
+    sensorType?: string;
+    lensMount?: string;
+    isoRange?: string;
+    shutterSpeed?: string;
+    videoRecording?: string;
+    autofocus?: string;
+    viewfinder?: string;
+    // Smartwatch / Wearables
+    healthFeatures?: string;
+    fitnessTracking?: string;
+    // Fallback dictionary for any extra custom WooCommerce attributes
+    [key: string]: any;
+  };
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -82,6 +152,7 @@ export interface Product {
   features: string[];
   variants: ProductVariant[];
   specs: ProductSpec[];
+  structuredInfo?: ProductStructuredInfo;
   isFeatured?: boolean;
   isTrending?: boolean;
   isNewArrival?: boolean;

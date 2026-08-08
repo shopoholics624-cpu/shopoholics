@@ -55,6 +55,33 @@
   --radius-input: 8px;
 }
 
+@keyframes infiniteScrollLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-infinite-scroll {
+  width: max-content;
+  animation: infiniteScrollLeft 28s linear infinite;
+}
+
+.animate-infinite-scroll:hover {
+  animation-play-state: paused;
+}
+
+.animate-infinite-scroll-slow {
+  width: max-content;
+  animation: infiniteScrollLeft 45s linear infinite;
+}
+
+.animate-infinite-scroll-slow:hover {
+  animation-play-state: paused;
+}
+
 /* Prevent horizontal scroll layout shifts */
 html, body {
   max-width: 100vw;

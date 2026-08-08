@@ -41,7 +41,7 @@ export default function ComparePage() {
               <ArrowLeft className="w-4 h-4" /> Back to Catalog
             </Link>
             <h1 className="text-2xl sm:text-4xl font-extrabold text-[#261816] flex items-center gap-2.5 tracking-tight">
-              <ArrowLeftRight className="w-7 h-7 sm:w-8 sm:h-8 text-[#8b0000] shrink-0" /> Hardware Comparison Matrix
+              <ArrowLeftRight className="w-7 h-7 sm:w-8 sm:h-8 text-[#8b0000] shrink-0" /> Compare Products
             </h1>
             <p className="text-xs sm:text-sm text-[#5a403c]">
               Side-by-side technical specification analysis for high-end decision making.
@@ -168,7 +168,7 @@ export default function ComparePage() {
         ) : (
           <div className="bg-white rounded-3xl p-12 text-center border border-[#e3beb8] shadow-lux space-y-4">
             <ArrowLeftRight className="w-12 h-12 text-[#8b0000] mx-auto opacity-40" />
-            <h3 className="text-2xl font-bold text-[#261816]">Comparison Matrix Empty</h3>
+            <h3 className="text-2xl font-bold text-[#261816]">No Products to Compare</h3>
             <p className="text-sm text-[#5a403c] max-w-md mx-auto">
               Select devices from our catalog to perform side-by-side specs analysis.
             </p>

@@ -20,18 +20,15 @@ export function BrandsShowcase() {
   ];
 
   return (
-    <section className="py-8 sm:py-10 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <section className="py-10 sm:py-16 lg:py-20 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e3beb8]/40 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e3beb8]/40 pb-5">
           <div>
-            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#8b0000] mb-0.5">
-              <Award className="w-3.5 h-3.5" /> Authorized Brand Partners
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#261816] tracking-tight">
               Shop By Brand
             </h2>
-            <p className="text-xs text-[#5a403c] mt-0.5">
+            <p className="text-sm sm:text-base text-[#5a403c] mt-1.5 font-medium">
               Explore 100% genuine products directly backed by official manufacturer warranties.
             </p>
           </div>
@@ -51,7 +48,7 @@ export function BrandsShowcase() {
             <Link
               key={b.name}
               href={b.href}
-              className="group bg-[#F1F0EC] hover:bg-[#E6E5DF] rounded-2xl p-3.5 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center space-y-1"
+              className="group relative z-0 hover:z-20 bg-[#F1F0EC] hover:bg-[#E6E5DF] rounded-2xl p-3.5 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center space-y-1"
             >
               <span className="text-2xl group-hover:scale-110 transition-transform duration-300">
                 {b.logo}

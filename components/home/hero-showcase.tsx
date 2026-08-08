@@ -49,23 +49,6 @@ export function HeroShowcase() {
 
   return (
     <section className="relative overflow-hidden bg-white w-full">
-      {/* Top Animated Marquee Bar */}
-      <div className="bg-gradient-to-r from-[#610000] via-[#8b0000] to-[#e51c10] text-white py-2 px-3 text-[11px] sm:text-xs font-bold uppercase tracking-wider overflow-hidden shadow-sm">
-        <div className="flex items-center justify-around whitespace-nowrap animate-marquee">
-          <span className="flex items-center gap-1.5">
-            🔥 Exclusive Launch Offer: Buy Any Flagship Device, Get 50% Off Accessories
-          </span>
-          <span className="mx-4 text-white/50">•</span>
-          <span className="flex items-center gap-1.5">
-            ⚡ Free Insured Express Courier Shipping Worldwide
-          </span>
-          <span className="mx-4 text-white/50">•</span>
-          <span className="flex items-center gap-1.5">
-            🛡️ Complimentary 2-Year Official Hardware Protection
-          </span>
-        </div>
-      </div>
-
       {/* Full Screen Edge-to-Edge Hero Banner Carousel (No Borders) */}
       <div className="relative w-full h-[55vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] overflow-hidden bg-black group">
         <AnimatePresence mode="wait">

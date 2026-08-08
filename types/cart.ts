@@ -19,6 +19,13 @@ export interface CartItem {
   };
 }
 
+export interface GstDetails {
+  isGstRequired: boolean;
+  gstin: string;
+  businessName: string;
+  businessAddress?: string;
+}
+
 export interface ShippingAddress {
   fullName: string;
   email: string;
@@ -29,6 +36,7 @@ export interface ShippingAddress {
   state: string;
   postalCode: string;
   country: string;
+  gstDetails?: GstDetails;
 }
 
 export interface PaymentDetails {
@@ -51,4 +59,5 @@ export interface Order {
   status: "Processing" | "Shipped" | "In Transit" | "Delivered";
   trackingNumber: string;
   estimatedDelivery: string;
+  gstDetails?: GstDetails;
 }

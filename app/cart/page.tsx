@@ -15,6 +15,7 @@ import {
   ArrowLeft,
   Gift,
   CheckCircle2,
+  Receipt,
 } from "lucide-react";
 
 export default function CartPage() {
@@ -239,6 +240,17 @@ export default function CartPage() {
                 <span className="text-sm font-bold text-[#261816]">Order Total</span>
                 <span className="text-2xl font-extrabold text-[#8b0000]">
                   {formatPrice(total)}
+                </span>
+              </div>
+
+              {/* GST Invoice Callout */}
+              <div className="p-3 rounded-2xl bg-[#fff8f6] border border-[#e3beb8]/60 flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 text-[#5a403c]">
+                  <Receipt className="w-4 h-4 text-[#8b0000] shrink-0" />
+                  <span>Need a <strong>GST Invoice</strong> for Tax Credit?</span>
+                </div>
+                <span className="text-[10px] font-bold text-[#8b0000] bg-[#ffe9e6] px-2 py-0.5 rounded-full shrink-0">
+                  Available
                 </span>
               </div>
 

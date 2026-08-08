@@ -4,12 +4,12 @@ import { useCart } from "@/hooks/use-cart";
 import { useDemo } from "@/hooks/use-demo";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
-import { CreditCard, Lock, ArrowRight } from "lucide-react";
+import { CreditCard, Lock, ArrowRight, Receipt, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 
 export default function PaymentPage() {
   const router = useRouter();
-  const { paymentDetails, setPaymentDetails, total } = useCart();
+  const { paymentDetails, setPaymentDetails, gstDetails, total } = useCart();
   const { isDemoMode, handleDemoAction } = useDemo();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -27,7 +27,7 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="bg-white rounded-3xl p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
+    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
       <div className="flex items-center justify-between pb-4 border-b border-[#ffe9e6]">
         <div>
           <h2 className="text-xl font-extrabold text-[#261816]">256-Bit Encrypted Payment</h2>
@@ -37,6 +37,28 @@ export default function PaymentPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* GST Invoice Callout Badge */}
+        {gstDetails.isGstRequired && (
+          <div className="p-4 rounded-2xl bg-[#fff8f6] border border-[#e3beb8]/60 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-[#ffe9e6] text-[#8b0000] flex items-center justify-center shrink-0">
+                <Receipt className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-xs sm:text-sm font-bold text-[#261816] block">
+                  GST Tax Credit Invoice Included
+                </span>
+                <span className="text-[11px] text-[#5a403c] font-medium block">
+                  GSTIN: <span className="font-mono font-bold text-[#8b0000]">{gstDetails.gstin || "27AAAAA0000A1Z5"}</span> ({gstDetails.businessName || "Registered Entity"})
+                </span>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#ffe9e6] text-[#8b0000] text-[10px] font-extrabold uppercase shrink-0">
+              <CheckCircle2 className="w-3 h-3 text-[#8b0000]" /> ITC Ready
+            </span>
+          </div>
+        )}
+
         {/* Payment Method Tabs */}
         <div className="grid grid-cols-3 gap-3">
           {(["card", "apple_pay", "crypto"] as const).map((method) => (

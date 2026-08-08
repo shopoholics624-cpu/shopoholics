@@ -29,11 +29,11 @@ export function PromoDealsShowcase() {
     },
     {
       id: "deal-3",
-      title: "Trade-In Exchange Bonus",
-      tagline: "Get Up to $300 Valuation for Old Devices",
-      code: "EXCHANGEPRO",
-      badge: "Best Valuation",
-      icon: RefreshCw,
+      title: "First Order Welcome Discount",
+      tagline: "$50 Flat Discount on Your First Hardware Purchase",
+      code: "WELCOME50",
+      badge: "New Customer",
+      icon: Gift,
       bgClass: "bg-[#fff8f6] border-[#e3beb8]",
       textClass: "text-[#261816]",
       ctaHref: "/shop",
@@ -52,15 +52,12 @@ export function PromoDealsShowcase() {
   ];
 
   return (
-    <section className="py-6 sm:py-10 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+    <section className="py-10 sm:py-16 lg:py-20 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Section Header */}
-        <div className="flex items-center justify-between border-b border-[#e3beb8]/40 pb-3">
+        <div className="flex items-center justify-between border-b border-[#e3beb8]/40 pb-5">
           <div>
-            <span className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#8b0000] mb-0.5">
-              <Gift className="w-3.5 h-3.5 text-[#e51c10]" /> Instant Savings & Special Perks
-            </span>
-            <h2 className="text-xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#261816] tracking-tight">
               Promotional Offers & Bank Deals
             </h2>
           </div>
@@ -73,7 +70,7 @@ export function PromoDealsShowcase() {
             return (
               <div
                 key={deal.id}
-                className="group rounded-2xl p-3 sm:p-5 bg-[#F1F0EC] hover:bg-[#E6E5DF] border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full space-y-3"
+                className="group relative z-0 hover:z-20 rounded-2xl p-3 sm:p-5 bg-[#F1F0EC] hover:bg-[#E6E5DF] border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-full space-y-3"
               >
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center justify-between gap-1">

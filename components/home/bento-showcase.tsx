@@ -35,18 +35,15 @@ export function BentoShowcase() {
   };
 
   return (
-    <section className="py-6 sm:py-10 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5">
+    <section className="py-10 sm:py-16 lg:py-20 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D4D3CD]/60 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D4D3CD]/60 pb-5">
           <div>
-            <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold text-[#8b0000] uppercase tracking-wider mb-0.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Curated Spotlight Collections
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1C1C1A] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1C1C1A] tracking-tight">
               Best Sellers & Trending Deals
             </h2>
-            <p className="text-xs text-[#5A5954] mt-0.5">
+            <p className="text-sm sm:text-base text-[#5A5954] mt-1.5 font-medium">
               Handpicked flagship devices, studio acoustics, and limited weekend offers.
             </p>
           </div>
@@ -65,7 +62,7 @@ export function BentoShowcase() {
           {/* LEFT COLUMN */}
           <div className="lg:col-span-6 space-y-4 flex flex-col justify-between">
             {/* Card 1: Top Promo Banner */}
-            <div className="relative rounded-2xl sm:rounded-3xl p-4 sm:p-6 bg-[#F1F0EC] hover:bg-[#E6E5DF] border border-[#D4D3CD] hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 overflow-hidden flex items-center justify-between min-h-[150px] sm:min-h-[180px] shadow-sm group">
+            <div className="relative z-0 hover:z-20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 bg-[#F1F0EC] hover:bg-[#E6E5DF] border border-[#D4D3CD] hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 overflow-hidden flex items-center justify-between min-h-[150px] sm:min-h-[180px] shadow-sm group">
               <div className="relative z-10 max-w-[60%] sm:max-w-xs space-y-2">
                 <h3 className="text-lg sm:text-2xl font-extrabold text-[#8b0000] tracking-tight leading-tight">
                   GET UP TO 50% OFF
@@ -89,7 +86,7 @@ export function BentoShowcase() {
             </div>
 
             {/* Card 2: Middle Special Banner */}
-            <div className="relative rounded-2xl sm:rounded-3xl p-4 sm:p-6 bg-[#F1F0EC] hover:bg-[#E6E5DF] border border-[#D4D3CD] hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 overflow-hidden flex items-center justify-between min-h-[140px] sm:min-h-[160px] shadow-sm group">
+            <div className="relative z-0 hover:z-20 rounded-2xl sm:rounded-3xl p-4 sm:p-6 bg-[#F1F0EC] hover:bg-[#E6E5DF] border border-[#D4D3CD] hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 overflow-hidden flex items-center justify-between min-h-[140px] sm:min-h-[160px] shadow-sm group">
               <div className="space-y-0.5 relative z-10 max-w-[60%] sm:max-w-xs">
                 <h3 className="text-lg sm:text-2xl font-extrabold text-[#1C1C1A] tracking-tight">
                   Weekend Special
@@ -120,7 +117,7 @@ export function BentoShowcase() {
             {/* Bottom Row Grid inside Left Column */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Card 5: Bottom-Left Card */}
-              <div className="relative rounded-2xl sm:rounded-3xl p-4 bg-[#F1F0EC] hover:bg-[#E6E5DF] border border-[#D4D3CD] hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 shadow-sm overflow-hidden min-h-[190px] flex flex-col justify-between group">
+              <div className="relative z-0 hover:z-20 rounded-2xl sm:rounded-3xl p-4 bg-[#F1F0EC] hover:bg-[#E6E5DF] border border-[#D4D3CD] hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 shadow-sm overflow-hidden min-h-[190px] flex flex-col justify-between group">
                 <button
                   onClick={handleDemoAction}
                   className="absolute top-3 right-3 p-1.5 rounded-full bg-white hover:bg-[#F1F0EC] text-[#1C1C1A] shadow-sm z-10 transition-colors"

@@ -8,6 +8,7 @@ import { useDemo } from "@/hooks/use-demo";
 import { formatPrice } from "@/lib/utils";
 import { RatingStars } from "@/components/common/rating-stars";
 import { FreeGiftBundleCard } from "@/components/product/free-gift-bundle-card";
+import { ProductInformation } from "@/components/product-info/product-information";
 import { InteractiveCanvas } from "@/components/product-detail/interactive-canvas";
 import { DemoLink as Link } from "@/components/demo/demo-link";
 import {
@@ -47,7 +48,6 @@ export default function ProductDetailPage({
 
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState<"specs" | "features" | "warranty">("specs");
   const [added, setAdded] = useState(false);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
@@ -279,7 +279,7 @@ export default function ProductDetailPage({
                 }`}
               >
                 <ArrowLeftRight className="w-3 h-3" />
-                {inCompare ? "Remove from Comparison" : "Add to Hardware Comparison"}
+                {inCompare ? "Remove from Compare" : "Add to Compare"}
               </button>
             </div>
 
@@ -308,89 +308,8 @@ export default function ProductDetailPage({
           </div>
         </div>
 
-        {/* Tabbed Specifications & Features Showcase */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
-          <div className="flex border-b border-[#e3beb8]/40 gap-6">
-            <button
-              onClick={() => setActiveTab("specs")}
-              className={`pb-2.5 text-xs sm:text-sm font-bold tracking-tight transition-all border-b-2 ${
-                activeTab === "specs"
-                  ? "border-[#8b0000] text-[#8b0000]"
-                  : "border-transparent text-[#8e706b] hover:text-[#261816]"
-              }`}
-            >
-              Technical Specifications
-            </button>
-            <button
-              onClick={() => setActiveTab("features")}
-              className={`pb-2.5 text-xs sm:text-sm font-bold tracking-tight transition-all border-b-2 ${
-                activeTab === "features"
-                  ? "border-[#8b0000] text-[#8b0000]"
-                  : "border-transparent text-[#8e706b] hover:text-[#261816]"
-              }`}
-            >
-              Engineering Features
-            </button>
-            <button
-              onClick={() => setActiveTab("warranty")}
-              className={`pb-2.5 text-xs sm:text-sm font-bold tracking-tight transition-all border-b-2 ${
-                activeTab === "warranty"
-                  ? "border-[#8b0000] text-[#8b0000]"
-                  : "border-transparent text-[#8e706b] hover:text-[#261816]"
-              }`}
-            >
-              Warranty & Service
-            </button>
-          </div>
-
-          {activeTab === "specs" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {product.specs.map((spec, idx) => (
-                <div key={idx} className="p-3 rounded-xl bg-[#fff8f6] border border-[#e3beb8]/40 space-y-0.5">
-                  <span className="text-[9px] font-bold text-[#8e706b] uppercase tracking-wider block">
-                    {spec.name}
-                  </span>
-                  <span className="text-xs font-bold text-[#261816] block">
-                    {spec.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {activeTab === "features" && (
-            <div className="space-y-3">
-              <p className="text-xs text-[#5a403c] leading-relaxed">
-                {product.description}
-              </p>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                <li className="flex items-center gap-2 text-xs font-semibold text-[#261816]">
-                  <Check className="w-3.5 h-3.5 text-[#8b0000]" /> Precision Grade 5 Titanium Chassis
-                </li>
-                <li className="flex items-center gap-2 text-xs font-semibold text-[#261816]">
-                  <Check className="w-3.5 h-3.5 text-[#8b0000]" /> Custom High-Excursion Acoustic Drivers
-                </li>
-                <li className="flex items-center gap-2 text-xs font-semibold text-[#261816]">
-                  <Check className="w-3.5 h-3.5 text-[#8b0000]" /> Neural Engine Hardware Acceleration
-                </li>
-                <li className="flex items-center gap-2 text-xs font-semibold text-[#261816]">
-                  <Check className="w-3.5 h-3.5 text-[#8b0000]" /> Insured Global Express Shipping Included
-                </li>
-              </ul>
-            </div>
-          )}
-
-          {activeTab === "warranty" && (
-            <div className="space-y-2 text-xs text-[#5a403c] leading-relaxed">
-              <p className="font-semibold text-[#261816]">
-                Every Shop-O-Holics flagship hardware unit includes 24 months of worldwide concierge warranty coverage.
-              </p>
-              <p>
-                In the event of accidental damage or technical defects, our hardware replacement program guarantees express courier dispatch of a replacement unit within 24 hours.
-              </p>
-            </div>
-          )}
-        </div>
+        {/* Standardized Category-Based Product Description & Specs System */}
+        <ProductInformation product={product} />
 
         {/* 3D Interactive Canvas Preview Section */}
         <InteractiveCanvas />

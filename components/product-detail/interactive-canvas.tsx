@@ -38,9 +38,6 @@ export function InteractiveCanvas() {
     >
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         <div className="lg:col-span-6 space-y-6">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/10 text-[#ff907f] text-xs font-semibold uppercase tracking-wider border border-white/20">
-            <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> GSAP Motion Architecture Showcase
-          </span>
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
             Exploded Titanium Internal Engineering
           </h2>

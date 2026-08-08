@@ -27,17 +27,14 @@ export default function HomePage() {
       <PromoDealsShowcase />
 
       {/* 6. Flagship Devices & Audio */}
-      <section className="py-8 sm:py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D4D3CD]/60 pb-4">
+      <section className="py-10 sm:py-16 lg:py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D4D3CD]/60 pb-5">
             <div>
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8b0000] uppercase tracking-wider mb-1">
-                <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Curated Hardware Selection
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#1C1C1A] tracking-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1C1C1A] tracking-tight">
                 Flagship Devices & Audio
               </h2>
-              <p className="text-xs sm:text-sm text-[#5A5954] mt-0.5">
+              <p className="text-sm sm:text-base text-[#5A5954] mt-1.5 font-medium">
                 Every device features grade 5 titanium construction and custom acoustic engineering.
               </p>
             </div>

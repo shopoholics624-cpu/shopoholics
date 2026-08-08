@@ -95,7 +95,42 @@ export const PRODUCTS: Product[] = [
       { name: "Battery Capacity", value: "5,200 mAh (32h Video Playback)", category: "Battery" },
       { name: "Charging Speed", value: "80W Wired, 50W Mag-Safe", category: "Battery" },
       { name: "Weight", value: "218g Titanium Chassis", category: "Design" }
-    ]
+    ],
+    structuredInfo: {
+      overview: "Forged in Grade 5 Titanium with an ultra-fine brushed finish. Powered by the groundbreaking 3nm Neural Engine processor delivering 60fps console-quality ray tracing, satellite emergency SOS, and all-day battery performance.",
+      keyFeatures: [
+        "Grade 5 Titanium enclosure with contoured aerodynamic edges",
+        "Dynamic 6.8-inch ProMotion Super Retina OLED running at 120Hz refresh rate",
+        "Quad-lens 200MP sensor array with 10x periscope optical zoom",
+        "Next-Gen 3nm Neural Chip with 16-core GPU",
+        "Sub-6GHz & mmWave 5G connectivity + Satellite SOS"
+      ],
+      dimensions: { length: 6.4, width: 3.0, height: 0.32, unit: "in" },
+      weight: { value: 218, unit: "g" },
+      whatsInTheBox: [
+        "Apex Smartphone Pro Titanium",
+        "Braided USB-C to USB-C Fast Charge Cable (1m)",
+        "SIM Tray Ejector Tool",
+        "Quick Start Documentation"
+      ],
+      warranty: "2-Year Manufacturer Hardware Warranty + 24/7 Global Concierge Support",
+      specs: {
+        displaySize: "6.8-inch ProMotion Super Retina OLED",
+        displayResolution: "3120 x 1440 pixels at 505 ppi",
+        refreshRate: "120Hz ProMotion Adaptive",
+        processor: "3nm Neural Bionic Pro (6 CPU Cores, 16 Neural Cores)",
+        memory: "16GB High-Speed LPDDR5X",
+        storage: "512GB / 1TB High-Speed NVMe",
+        cameraMain: "200MP Main (f/1.4, OIS) + 50MP Ultra-Wide + 50MP 10x Periscope",
+        cameraFront: "24MP TrueDepth Front Camera with Autofocus",
+        batteryCapacity: "5,200 mAh (Up to 32 Hours Continuous Playback)",
+        chargingSpeed: "80W Ultra-Fast Wired, 50W Wireless Mag-Safe",
+        os: "ApexOS 18 (Pre-installed)",
+        connectivity: "Dual-SIM 5G, Wi-Fi 7 (802.11be), Bluetooth 5.4, Ultra-Wideband 2",
+        security: "Sub-skin 3D Ultrasonic Fingerprint + Face Authentication",
+        sensors: "LiDAR Scanner, Barometer, High-g Accelerometer, Dual Ambient Light"
+      }
+    }
   },
   {
     id: "prod-2",

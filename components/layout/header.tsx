@@ -224,8 +224,8 @@ export function Header() {
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? "glass-header shadow-lux py-3"
-            : "bg-white/95 backdrop-blur-md py-4 border-b border-[#e3beb8]/30"
+            ? "glass-header shadow-lux pt-2.5 pb-0"
+            : "bg-white/95 backdrop-blur-md pt-3.5 pb-0 border-b border-[#e3beb8]/30"
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -249,11 +249,11 @@ export function Header() {
             {/* Desktop Direct Nav Links with Perfectly Aligned Typography */}
             <div className="hidden lg:flex items-center gap-6 relative">
               <Link href="/" className="text-xs font-bold text-[#261816] hover:text-[#8b0000] transition-colors">
-                Showroom
+                Discover
               </Link>
 
               <Link href="/shop" className="text-xs font-bold text-[#261816] hover:text-[#8b0000] transition-colors">
-                Shop all
+                Shop
               </Link>
 
               {/* AUTOMATIC HOVER CATEGORIES TEXT LINK WITH PERFECT FLEX ALIGNMENT */}
@@ -266,7 +266,7 @@ export function Header() {
                   href="/shop"
                   className="text-xs font-bold text-[#261816] hover:text-[#8b0000] transition-colors"
                 >
-                  Categories
+                  Explore
                 </Link>
 
                 {/* MEGA DROPDOWN PANEL CONTAINING ALL 12 MAIN HARDWARE CATEGORIES & SUBCATEGORIES */}
@@ -419,6 +419,72 @@ export function Header() {
             </div>
           </div>
         </div>
+
+        {/* Sticky Launch Offer Strip (Solid high-visibility crimson, static on desktop, slow scrolling ONLY on mobile/tablet) */}
+        <div className="w-full bg-[#800000] text-white py-2 overflow-hidden border-t border-white/20 shadow-sm cursor-pointer select-none mt-1">
+          {/* DESKTOP STABLE BAR: Non-scrolling, tightly spaced static offer items */}
+          <div className="hidden lg:flex items-center justify-center gap-4 px-4 text-[11px] sm:text-xs font-extrabold tracking-normal uppercase text-white">
+            <span className="flex items-center gap-1.5 shrink-0">
+              🔥 EXCLUSIVE LAUNCH OFFER: BUY ANY FLAGSHIP DEVICE, GET 50% OFF ACCESSORIES
+            </span>
+            <span className="text-[#ffb4a8] font-black">•</span>
+            <span className="flex items-center gap-1.5 shrink-0">
+              ⚡ INSURED EXPRESS COURIER SHIPPING ON ORDERS OVER $99
+            </span>
+            <span className="text-[#ffb4a8] font-black">•</span>
+            <span className="flex items-center gap-1.5 shrink-0">
+              🛡️ COMPLIMENTARY 2-YEAR CONCIERGE HARDWARE WARRANTY
+            </span>
+          </div>
+
+          {/* MOBILE & TABLET SCROLLING TICKER (STRICTLY HIDDEN ON DESKTOP) */}
+          <div className="block lg:hidden overflow-hidden">
+            <div className="flex animate-infinite-scroll-slow items-center gap-5 text-[10px] sm:text-[11px] font-extrabold tracking-normal uppercase text-white">
+              <span className="flex items-center gap-1.5 shrink-0">
+                🔥 EXCLUSIVE LAUNCH OFFER: BUY ANY FLAGSHIP DEVICE, GET 50% OFF ACCESSORIES
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+              <span className="flex items-center gap-1.5 shrink-0">
+                🎁 FREE JBL FLIP 6 SPEAKER BUNDLE WITH APEX SMARTPHONE PRO
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+              <span className="flex items-center gap-1.5 shrink-0">
+                ⚡ INSURED EXPRESS COURIER SHIPPING ON ORDERS OVER $99
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+              <span className="flex items-center gap-1.5 shrink-0">
+                🛡️ COMPLIMENTARY 2-YEAR CONCIERGE HARDWARE WARRANTY
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+              <span className="flex items-center gap-1.5 shrink-0">
+                💳 0% INTEREST EMI PLANS AVAILABLE ON ALL LAPTOPS & PHONES
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+
+              {/* Duplicated Second Set for Seamless Infinite Loop */}
+              <span className="flex items-center gap-1.5 shrink-0">
+                🔥 EXCLUSIVE LAUNCH OFFER: BUY ANY FLAGSHIP DEVICE, GET 50% OFF ACCESSORIES
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+              <span className="flex items-center gap-1.5 shrink-0">
+                🎁 FREE JBL FLIP 6 SPEAKER BUNDLE WITH APEX SMARTPHONE PRO
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+              <span className="flex items-center gap-1.5 shrink-0">
+                ⚡ INSURED EXPRESS COURIER SHIPPING ON ORDERS OVER $99
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+              <span className="flex items-center gap-1.5 shrink-0">
+                🛡️ COMPLIMENTARY 2-YEAR CONCIERGE HARDWARE WARRANTY
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+              <span className="flex items-center gap-1.5 shrink-0">
+                💳 0% INTEREST EMI PLANS AVAILABLE ON ALL LAPTOPS & PHONES
+              </span>
+              <span className="text-[#ffb4a8] font-black">•</span>
+            </div>
+          </div>
+        </div>
       </header>
 
       {/* Mobile Drawer with Accordion Subcategories */}
@@ -471,7 +537,7 @@ export function Header() {
                           : "text-[#261816] hover:bg-[#fff0ee] hover:text-[#8b0000]"
                       }`}
                     >
-                      <span>Showroom</span>
+                      <span>Discover</span>
                       <ChevronRight className="w-3.5 h-3.5 opacity-60" />
                     </Link>
 
@@ -484,7 +550,7 @@ export function Header() {
                           : "text-[#261816] hover:bg-[#fff0ee] hover:text-[#8b0000]"
                       }`}
                     >
-                      <span>Shop all</span>
+                      <span>Shop</span>
                       <ChevronRight className="w-3.5 h-3.5 opacity-60" />
                     </Link>
 
@@ -496,7 +562,7 @@ export function Header() {
                       >
                         <div className="flex items-center gap-2">
                           <Layers className="w-4 h-4 text-[#8b0000]" />
-                          <span>Categories (12 Hardware Groups)</span>
+                          <span>Explore (12 Hardware Groups)</span>
                         </div>
                         <ChevronDown className={`w-3.5 h-3.5 text-[#8e706b] transition-transform ${expandedMobileCategory === "all-cats" ? "rotate-180" : ""}`} />
                       </button>

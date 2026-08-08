@@ -140,7 +140,7 @@ export function HorizontalShowcase() {
       image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop",
       ctaText: "Explore Full Collection",
       ctaHref: "/shop",
-      secondaryCtaText: "Compare All Hardware",
+      secondaryCtaText: "Compare",
       secondaryCtaHref: "/compare",
       specs: [
         { label: "Warranty", val: "2-Year Hardware Coverage", icon: ShieldCheck },

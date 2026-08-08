@@ -62,18 +62,15 @@ export function BudgetShowcase() {
   ];
 
   return (
-    <section className="py-8 sm:py-10 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <section className="py-10 sm:py-16 lg:py-20 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e3beb8]/40 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e3beb8]/40 pb-5">
           <div>
-            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#8b0000] block mb-0.5">
-              Price-Tailored Collections
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#261816] tracking-tight">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#261816] tracking-tight">
               Shop By Budget
             </h2>
-            <p className="text-xs text-[#5a403c] mt-0.5">
+            <p className="text-sm sm:text-base text-[#5a403c] mt-1.5 font-medium">
               Target exact price points from entry essentials to flagship luxury edition hardware.
             </p>
           </div>
@@ -95,7 +92,7 @@ export function BudgetShowcase() {
               <Link
                 key={tier.id}
                 href={tier.href}
-                className="group bg-[#fff8f6] rounded-2xl p-4 border border-[#e3beb8]/60 shadow-sm hover:shadow-md hover:border-[#8b0000]/50 transition-all duration-300 flex flex-col justify-between h-[150px]"
+                className="group relative z-0 hover:z-20 bg-[#fff8f6] rounded-2xl p-4 border border-[#e3beb8]/60 shadow-sm hover:shadow-md hover:border-[#8b0000]/50 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between h-[150px]"
               >
                 <div>
                   <div className="flex items-center justify-between mb-1">
