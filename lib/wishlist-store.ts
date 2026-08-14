@@ -1,84 +1,72 @@
-import fs from "fs/promises";
-import path from "path";
+import { getDb } from "@/lib/firebase-admin";
 
-const WISHLISTS_DIR = path.join(process.cwd(), "data", "wishlists");
-
-/**
- * Ensures the data/wishlists directory exists on disk.
- */
-async function ensureWishlistsDirExists() {
-  try {
-    await fs.mkdir(WISHLISTS_DIR, { recursive: true });
-  } catch (err) {
-    // Directory already exists or created
-  }
-}
+const COLLECTION_NAME = "wishlists";
 
 /**
- * Returns the absolute path to a wishlist file on disk.
- */
-function getWishlistFilePath(wishlistKey: string): string {
-  // Sanitize key to prevent path traversal
-  const safeKey = wishlistKey.replace(/[^a-zA-Z0-9_-]/g, "_");
-  return path.join(WISHLISTS_DIR, `${safeKey}.json`);
-}
-
-/**
- * Reads persistent wishlist product IDs from disk.
- * Returns empty array [] if file does not exist.
+ * Reads persistent wishlist product IDs from Firestore.
+ * Returns empty array [] if document does not exist.
  */
 export async function readWishlistFromFile(wishlistKey: string): Promise<string[]> {
   if (!wishlistKey) return [];
   try {
-    await ensureWishlistsDirExists();
-    const filePath = getWishlistFilePath(wishlistKey);
-    const data = await fs.readFile(filePath, "utf-8");
-    const parsed = JSON.parse(data);
-    if (Array.isArray(parsed)) {
-      return Array.from(new Set(parsed.map((id) => String(id)).filter(Boolean)));
+    const db = getDb();
+    const docRef = db.collection(COLLECTION_NAME).doc(wishlistKey);
+    const snap = await docRef.get();
+
+    if (!snap.exists) {
+      return [];
+    }
+
+    const data = snap.data();
+    if (data && Array.isArray(data.productIds)) {
+      return Array.from(new Set(data.productIds.map((id: any) => String(id)).filter(Boolean)));
     }
   } catch (err: any) {
-    if (err.code !== "ENOENT") {
-      console.warn(`[WishlistStore] Read error for ${wishlistKey}:`, err.message);
-    }
+    console.error(`[WishlistStore/Firestore] Read error for ${wishlistKey}:`, err.message);
+    throw err;
   }
   return [];
 }
 
 /**
- * Writes persistent wishlist product IDs to disk for a specific wishlistKey.
- * Survives Next.js dev server process restarts, process kills, and system reboots.
+ * Writes persistent wishlist product IDs to Firestore for a specific wishlistKey.
  */
 export async function writeWishlistToFile(wishlistKey: string, productIds: string[]): Promise<void> {
   if (!wishlistKey) return;
   try {
-    await ensureWishlistsDirExists();
-    const filePath = getWishlistFilePath(wishlistKey);
+    const db = getDb();
+    const docRef = db.collection(COLLECTION_NAME).doc(wishlistKey);
     const uniqueIds = Array.from(new Set((productIds || []).map((id) => String(id)).filter(Boolean)));
-    const json = JSON.stringify(uniqueIds, null, 2);
-    await fs.writeFile(filePath, json, "utf-8");
+    await docRef.set(
+      {
+        wishlistKey,
+        productIds: uniqueIds,
+        updatedAt: Date.now(),
+      },
+      { merge: true }
+    );
   } catch (err: any) {
-    console.error(`[WishlistStore] Write error for ${wishlistKey}:`, err.message);
+    console.error(`[WishlistStore/Firestore] Write error for ${wishlistKey}:`, err.message);
+    throw err;
   }
 }
 
 /**
- * Deletes a persistent wishlist file from disk.
+ * Deletes a persistent wishlist document from Firestore.
  */
 export async function deleteWishlistFile(wishlistKey: string): Promise<void> {
   if (!wishlistKey) return;
   try {
-    const filePath = getWishlistFilePath(wishlistKey);
-    await fs.unlink(filePath);
+    const db = getDb();
+    const docRef = db.collection(COLLECTION_NAME).doc(wishlistKey);
+    await docRef.delete();
   } catch (err: any) {
-    if (err.code !== "ENOENT") {
-      console.warn(`[WishlistStore] Delete error for ${wishlistKey}:`, err.message);
-    }
+    console.warn(`[WishlistStore/Firestore] Delete error for ${wishlistKey}:`, err.message);
   }
 }
 
 /**
- * Safely merges guest wishlist product IDs into customer wishlist on disk without duplicates.
+ * Safely merges guest wishlist product IDs into customer wishlist in Firestore without duplicates using a transaction.
  */
 export async function mergeGuestWishlistIntoCustomer(
   guestWishlistKey: string,
@@ -88,19 +76,45 @@ export async function mergeGuestWishlistIntoCustomer(
     return readWishlistFromFile(customerWishlistKey);
   }
 
-  const guestIds = await readWishlistFromFile(guestWishlistKey);
-  if (!guestIds || guestIds.length === 0) {
+  const db = getDb();
+  const guestDocRef = db.collection(COLLECTION_NAME).doc(guestWishlistKey);
+  const customerDocRef = db.collection(COLLECTION_NAME).doc(customerWishlistKey);
+
+  try {
+    let mergedIds: string[] = [];
+
+    await db.runTransaction(async (transaction) => {
+      const guestSnap = await transaction.get(guestDocRef);
+      const customerSnap = await transaction.get(customerDocRef);
+
+      const guestIds: string[] = guestSnap.exists && Array.isArray(guestSnap.data()?.productIds) ? guestSnap.data()!.productIds : [];
+      const customerIds: string[] = customerSnap.exists && Array.isArray(customerSnap.data()?.productIds) ? customerSnap.data()!.productIds : [];
+
+      if (guestIds.length === 0) {
+        mergedIds = customerIds;
+        return;
+      }
+
+      mergedIds = Array.from(new Set([...customerIds.map(String), ...guestIds.map(String)]));
+
+      // Save merged customer wishlist document
+      transaction.set(
+        customerDocRef,
+        {
+          wishlistKey: customerWishlistKey,
+          productIds: mergedIds,
+          updatedAt: Date.now(),
+        },
+        { merge: true }
+      );
+
+      // Clean up transient guest wishlist document
+      transaction.delete(guestDocRef);
+    });
+
+    return mergedIds;
+  } catch (err: any) {
+    console.error(`[WishlistStore/Firestore] Transaction merge error for ${guestWishlistKey} -> ${customerWishlistKey}:`, err.message);
     return readWishlistFromFile(customerWishlistKey);
   }
-
-  const customerIds = await readWishlistFromFile(customerWishlistKey);
-  const merged = Array.from(new Set([...customerIds, ...guestIds]));
-
-  // Save merged customer wishlist
-  await writeWishlistToFile(customerWishlistKey, merged);
-
-  // Clean up transient guest wishlist file
-  await deleteWishlistFile(guestWishlistKey);
-
-  return merged;
 }

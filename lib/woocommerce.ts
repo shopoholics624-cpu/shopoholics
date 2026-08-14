@@ -198,8 +198,8 @@ export function transformWooProductToProduct(
         price: vCurrentPrice,
         originalPrice: vRegularPrice > vCurrentPrice ? vRegularPrice : undefined,
         image: v.image?.src || featuredImage,
-        inStock: v.stock_status === "instock",
-        stockStatus: v.stock_status,
+        inStock: v.purchasable !== false && v.stock_status !== "outofstock",
+        stockStatus: v.stock_status || "instock",
       };
     });
   } else if (woo.attributes && woo.attributes.length > 0) {
@@ -218,8 +218,8 @@ export function transformWooProductToProduct(
       price: currentPrice,
       originalPrice: regularPrice > currentPrice ? regularPrice : undefined,
       image: featuredImage,
-      inStock: woo.stock_status === "instock",
-      stockStatus: woo.stock_status,
+      inStock: woo.stock_status !== "outofstock" && woo.purchasable !== false,
+      stockStatus: woo.stock_status || "instock",
     }));
   } else {
     // Single default variant
@@ -233,8 +233,8 @@ export function transformWooProductToProduct(
         price: currentPrice,
         originalPrice: regularPrice > currentPrice ? regularPrice : undefined,
         image: featuredImage,
-        inStock: woo.stock_status === "instock",
-        stockStatus: woo.stock_status,
+        inStock: woo.stock_status !== "outofstock" && woo.purchasable !== false,
+        stockStatus: woo.stock_status || "instock",
       },
     ];
   }
@@ -334,6 +334,8 @@ export function transformWooProductToProduct(
     attributeGroups: attributeGroups.length > 0 ? attributeGroups : undefined,
     specs,
     structuredInfo,
+    inStock: woo.stock_status !== "outofstock" && woo.purchasable !== false,
+    stockStatus: woo.stock_status || "instock",
   };
 }
 
@@ -495,6 +497,40 @@ export async function getWooProductVariations(productId: string | number): Promi
   } catch (error) {
     console.error("[WooCommerce Service] Failed to fetch product variations:", error instanceof Error ? error.message : error);
     return [];
+  }
+}
+
+/**
+ * Fetches a single WooCommerce product variation by product ID and variation ID (Server-side only).
+ */
+export async function getWooVariationById(
+  productId: string | number,
+  variationId: string | number
+): Promise<WooProductVariation | null> {
+  const creds = getWooCommerceCredentials();
+  if (!creds || !productId || !variationId) return null;
+
+  try {
+    const res = await fetch(
+      `${creds.baseUrl}/wp-json/wc/v3/products/${productId}/variations/${variationId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: creds.authHeader,
+          "Content-Type": "application/json",
+        },
+        next: { revalidate: 60 },
+      }
+    );
+
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (error) {
+    console.error(
+      `[WooCommerce Service] Failed to fetch variation ${variationId} for product ${productId}:`,
+      error instanceof Error ? error.message : error
+    );
+    return null;
   }
 }
 

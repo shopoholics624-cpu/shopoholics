@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getWooProductById, getWooProductVariations } from "@/lib/woocommerce";
+import { getWooProductById, getWooProductVariations, getWooVariationById } from "@/lib/woocommerce";
 import { getAuthenticatedCustomerSession } from "@/lib/auth";
-import {
-  readCartFromFile,
-  writeCartToFile,
-} from "@/lib/cart-store";
+import { readCartFromFile, writeCartToFile } from "@/lib/cart-store";
 import { CartItem } from "@/types/cart";
 import { Product, ProductVariant } from "@/types/product";
 import { getFreeGiftBundle, createFreeGiftCartItem } from "@/lib/bundle-utils";
@@ -21,15 +18,6 @@ interface ResolvedCartContext {
 
 /**
  * Resolves the authenticated customer cart key or guest session cart key.
- * 
- * Authenticated Customer (e.g. Customer ID #3):
- * - Cart Key: "cust_3"
- * - Stored in file: "data/carts/cust_3.json"
- * 
- * Guest Customer:
- * - Session ID: "cart_sess_..."
- * - Cart Key: "guest_cart_sess_..."
- * - Stored in file: "data/carts/guest_cart_sess_....json"
  */
 async function resolveCartContext(): Promise<ResolvedCartContext> {
   const cookieStore = await cookies();
@@ -67,14 +55,11 @@ async function resolveCartContext(): Promise<ResolvedCartContext> {
  * Normalizes cart totals according to pure WooCommerce values.
  */
 function calculateWooCartTotals(items: CartItem[]) {
-  const subtotal = (items || []).reduce(
-    (sum, item) => {
-      if (!item || item.isFreeGift || item.unavailable) return sum;
-      const price = item.selectedVariant?.price ?? item.product?.price ?? 0;
-      return sum + price * (item.quantity || 1);
-    },
-    0
-  );
+  const subtotal = (items || []).reduce((sum, item) => {
+    if (!item || item.isFreeGift || item.unavailable) return sum;
+    const price = item.selectedVariant?.price ?? item.product?.price ?? 0;
+    return sum + price * (item.quantity || 1);
+  }, 0);
 
   const totalQuantity = (items || []).reduce(
     (sum, item) => (item && !item.isFreeGift && !item.unavailable ? sum + (item.quantity || 1) : sum),
@@ -93,30 +78,43 @@ function calculateWooCartTotals(items: CartItem[]) {
 
 /**
  * SERVER-SIDE CART ITEM NORMALIZER
- * Guarantees every cart item returned has a fully hydrated, non-null product and selectedVariant object.
+ * Revalidates stored cart items against live WooCommerce product & variation price and stock status.
  */
 async function normalizeCartItem(rawItem: any): Promise<CartItem> {
   const rawProductId = String(rawItem.productId || rawItem.product?.id || rawItem.id || "").replace(/\D/g, "");
   const rawVarId = rawItem.variationId || rawItem.selectedVariant?.wooVariationId || null;
   const quantity = Math.max(1, parseInt(String(rawItem.quantity || 1), 10));
 
-  // If item is a complimentary gift item, preserve free gift schema safely
+  // Complimentary free gift item handling
   if (rawItem.isFreeGift) {
     const giftProduct: Product = rawItem.product || {
       id: rawProductId || "gift",
-      title: rawItem.freeGiftDetails?.giftTitle || "Complimentary Gift",
       slug: "free-gift",
+      title: rawItem.freeGiftDetails?.giftTitle || "Complimentary Gift",
+      type: "simple",
+      hasVariations: false,
+      tagline: "Free Gift",
+      brand: "Shop-O-Holics",
+      category: "accessories",
+      categorySlugs: ["accessories"],
+      categoryIds: [0],
+      categories: [],
+      primaryCategory: { id: 0, name: "Free Gift", slug: "free-gift" },
+      categoryLabel: "Free Gift",
+      lifestyle: ["work"],
       price: 0,
-      featuredImage: rawItem.freeGiftDetails?.giftImage || "/images/logo-cropped.png",
-      images: [rawItem.freeGiftDetails?.giftImage || "/images/logo-cropped.png"],
       rating: 5,
       reviewCount: 1,
-      brand: "Shop-O-Holics",
-      categoryLabel: "Free Gift",
-      type: "simple",
+      emiAvailable: true,
+      freeDelivery: true,
+      expressDelivery: true,
+      featuredImage: rawItem.freeGiftDetails?.giftImage || "/images/logo-cropped.png",
+      images: [rawItem.freeGiftDetails?.giftImage || "/images/logo-cropped.png"],
       description: "Complimentary luxury tech gift.",
+      features: ["Complimentary Gift"],
+      variants: [],
       specs: [],
-      keyFeatures: [],
+      structuredInfo: { overview: "Complimentary Gift", keyFeatures: [] },
       inStock: true,
       stockStatus: "instock",
     };
@@ -159,23 +157,36 @@ async function normalizeCartItem(rawItem: any): Promise<CartItem> {
     }
   }
 
-  // Handle case where product no longer exists in WooCommerce
+  // Handle case where product no longer exists in WooCommerce catalog
   if (!wooProduct) {
     const fallbackProduct: Product = rawItem.product || {
       id: rawProductId || "unavailable",
-      title: rawItem.product?.title || "Product Currently Unavailable",
       slug: "unavailable",
+      title: rawItem.product?.title || "Product Currently Unavailable",
+      type: "simple",
+      hasVariations: false,
+      tagline: "Unavailable",
+      brand: "Shop-O-Holics",
+      category: "accessories",
+      categorySlugs: [],
+      categoryIds: [],
+      categories: [],
+      primaryCategory: { id: 0, name: "Unavailable", slug: "unavailable" },
+      categoryLabel: "Unavailable",
+      lifestyle: ["work"],
       price: 0,
-      featuredImage: rawItem.product?.featuredImage || "/images/logo-cropped.png",
-      images: ["/images/logo-cropped.png"],
       rating: 0,
       reviewCount: 0,
-      brand: "Shop-O-Holics",
-      categoryLabel: "Unavailable",
-      type: "simple",
+      emiAvailable: false,
+      freeDelivery: false,
+      expressDelivery: false,
+      featuredImage: rawItem.product?.featuredImage || "/images/logo-cropped.png",
+      images: ["/images/logo-cropped.png"],
       description: "This item is currently unavailable.",
+      features: [],
+      variants: [],
       specs: [],
-      keyFeatures: [],
+      structuredInfo: { overview: "Unavailable", keyFeatures: [] },
       inStock: false,
       stockStatus: "outofstock",
     };
@@ -194,7 +205,7 @@ async function normalizeCartItem(rawItem: any): Promise<CartItem> {
     };
 
     return {
-      id: rawItem.id || `${rawProductId || 'item'}-unavailable`,
+      id: rawItem.id || `${rawProductId || "item"}-unavailable`,
       productId: String(fallbackProduct.id),
       variationId: rawVarId,
       product: fallbackProduct,
@@ -208,7 +219,7 @@ async function normalizeCartItem(rawItem: any): Promise<CartItem> {
     };
   }
 
-  // Live WooCommerce Product & Variation Price & Stock Resolution
+  // Revalidate live price & stock status
   let livePrice = wooProduct.price;
   let liveImage = wooProduct.featuredImage;
   let liveStockStatus = wooProduct.stockStatus !== "outofstock" && wooProduct.inStock !== false;
@@ -217,17 +228,26 @@ async function normalizeCartItem(rawItem: any): Promise<CartItem> {
 
   if (rawVarId && (wooProduct.type === "variable" || wooProduct.hasVariations)) {
     try {
-      const rawVariations = await getWooProductVariations(rawProductId);
-      const matchVar = rawVariations.find((v) => String(v.id) === String(rawVarId));
-      if (matchVar) {
-        livePrice = parseFloat(matchVar.price || matchVar.regular_price || String(wooProduct.price));
-        liveStockStatus = matchVar.purchasable !== false && matchVar.stock_status === "instock";
-        if (matchVar.image?.src) liveImage = matchVar.image.src;
-        if (matchVar.sku) liveSku = matchVar.sku;
-        liveVarName = (matchVar.attributes || []).map((a: any) => a.option).join(" / ") || "Selected Variation";
+      const rawVar = await getWooVariationById(rawProductId, rawVarId);
+      if (rawVar) {
+        livePrice = parseFloat(rawVar.price || rawVar.regular_price || String(wooProduct.price));
+        liveStockStatus = rawVar.purchasable !== false && rawVar.stock_status !== "outofstock";
+        if (rawVar.image?.src) liveImage = rawVar.image.src;
+        if (rawVar.sku) liveSku = rawVar.sku;
+        liveVarName = (rawVar.attributes || []).map((a: any) => a.option).join(" / ") || "Selected Variation";
+      } else {
+        const rawVariations = await getWooProductVariations(rawProductId);
+        const matchVar = rawVariations.find((v) => String(v.id) === String(rawVarId));
+        if (matchVar) {
+          livePrice = parseFloat(matchVar.price || matchVar.regular_price || String(wooProduct.price));
+          liveStockStatus = matchVar.purchasable !== false && matchVar.stock_status !== "outofstock";
+          if (matchVar.image?.src) liveImage = matchVar.image.src;
+          if (matchVar.sku) liveSku = matchVar.sku;
+          liveVarName = (matchVar.attributes || []).map((a: any) => a.option).join(" / ") || "Selected Variation";
+        }
       }
     } catch (varErr) {
-      // Fall back to stored variant info or parent product live price
+      console.warn(`[normalizeCartItem] Error fetching variation ${rawVarId} for product ${rawProductId}:`, varErr);
     }
   }
 
@@ -265,7 +285,7 @@ async function normalizeCartItem(rawItem: any): Promise<CartItem> {
     protectionPlanCost: rawItem.protectionPlanCost || 990,
     selectedAttributes: selectedVariant.attributes,
     inStock: liveStockStatus,
-    unavailable: false,
+    unavailable: !liveStockStatus,
   };
 }
 
@@ -277,10 +297,10 @@ export async function GET() {
     const context = await resolveCartContext();
     const cookieStore = await cookies();
 
-    // Read persistent cart directly from disk
+    // Read persistent cart from Firestore
     const storedItems = await readCartFromFile(context.cartKey);
 
-    // Normalize every stored item to guarantee non-null product & selectedVariant objects
+    // Normalize stored items to guarantee live prices & stock statuses
     const revalidatedItems = await Promise.all(
       storedItems.map((rawItem: any) => normalizeCartItem(rawItem))
     );
@@ -296,7 +316,6 @@ export async function GET() {
       totals,
     });
 
-    // Set persistent guest session cookie if new
     if (context.isNewGuestSession && context.guestSessionId) {
       cookieStore.set(GUEST_SESSION_COOKIE_NAME, context.guestSessionId, {
         httpOnly: true,
@@ -323,7 +342,7 @@ export async function GET() {
 }
 
 /**
- * POST /api/cart - Add item to cart with Variable Product Server-Side Resolution
+ * POST /api/cart - Add item to cart with WooCommerce Product & Variation Resolution
  */
 export async function POST(request: NextRequest) {
   try {
@@ -338,118 +357,177 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     let { product, selectedVariant, quantity = 1, productId, variationId, selectedAttributes, isCardAdd } = body;
 
-    if (!product && !productId) {
-      return NextResponse.json({ success: false, message: "Missing product or product ID payload" }, { status: 400 });
+    const pId = String(productId || product?.id || "").replace(/\D/g, "");
+
+    // [SHOP-O-HOLICS CART DEBUG]
+    console.log("[SHOP-O-HOLICS CART DEBUG]", {
+      productId: pId,
+      variationId: variationId || selectedVariant?.wooVariationId || null,
+      selectedAttributes: selectedAttributes || selectedVariant?.attributes || {},
+      isCardAdd,
+    });
+
+    if (!pId) {
+      return NextResponse.json({ success: false, message: "Missing product or product ID payload." }, { status: 400 });
     }
 
-    const pId = productId || product?.id;
-    const isVariableProduct =
-      product?.type === "variable" ||
-      product?.hasVariations === true ||
-      (!variationId && (!selectedVariant || isCardAdd));
-
-    // VARIABLE PRODUCT RESOLUTION SERVER-SIDE
-    if (isVariableProduct && pId && (!variationId || isCardAdd)) {
-      const rawVariations = await getWooProductVariations(pId);
-
-      if (!rawVariations || rawVariations.length === 0) {
-        if (!selectedVariant && (!product || product.type === "variable")) {
-          return NextResponse.json(
-            { success: false, message: "This product is currently unavailable." },
-            { status: 400 }
-          );
-        }
-      } else {
-        // Find FIRST valid variation in WooCommerce returned order (purchasable & instock)
-        const firstValidVar =
-          rawVariations.find((v) => v.purchasable !== false && v.stock_status === "instock") ||
-          rawVariations.find((v) => v.purchasable !== false && v.stock_status !== "outofstock");
-
-        if (!firstValidVar) {
-          return NextResponse.json(
-            { success: false, message: "This product is currently unavailable." },
-            { status: 400 }
-          );
-        }
-
-        // Construct canonical WooCommerce variation attributes
-        const resolvedAttrs: Record<string, string> = {};
-        (firstValidVar.attributes || []).forEach((a: any) => {
-          if (a.name && a.option) {
-            const cleanName = a.name.replace(/^pa_/, "").replace(/_/g, " ").replace(/-/g, " ");
-            const capName = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-            resolvedAttrs[capName] = a.option;
-            resolvedAttrs[a.name] = a.option;
-          }
-        });
-
-        const varPrice = parseFloat(firstValidVar.price || firstValidVar.regular_price || String(product?.price || 0));
-        const varImage = firstValidVar.image?.src || product?.featuredImage || "";
-        const varSku = firstValidVar.sku || product?.sku || `SKU-${firstValidVar.id}`;
-        const varName = (firstValidVar.attributes || []).map((a: any) => a.option).join(" / ") || "Standard Variation";
-
-        variationId = firstValidVar.id;
-        selectedAttributes = { ...resolvedAttrs, ...(selectedAttributes || {}) };
-
-        selectedVariant = {
-          id: `var-${firstValidVar.id}`,
-          wooVariationId: firstValidVar.id,
-          sku: varSku,
-          name: varName,
-          colorName: resolvedAttrs["Color"] || resolvedAttrs["Colour"] || "Standard",
-          colorHex: "#8B0000",
-          storage: resolvedAttrs["Storage"] || undefined,
-          attributes: selectedAttributes,
-          price: varPrice,
-          image: varImage,
-          inStock: firstValidVar.purchasable !== false && firstValidVar.stock_status === "instock",
-          stockStatus: firstValidVar.stock_status || "instock",
-        };
-      }
+    // 1. Fetch Authoritative WooCommerce Product
+    let wooProduct: Product | null = null;
+    try {
+      wooProduct = await getWooProductById(pId);
+    } catch (fetchErr: any) {
+      console.error(`[WooCommerce Cart API] Failed to fetch product ${pId}:`, fetchErr);
+      return NextResponse.json(
+        { success: false, message: "Unable to verify product availability. Please try again." },
+        { status: 500 }
+      );
     }
 
-    // Resolve base product if missing
-    if (!product && pId) {
-      product = await getWooProductById(pId);
-    }
-
-    if (!product) {
+    if (!wooProduct) {
+      console.warn(`[WOOCOMMERCE CART VALIDATION] Product ${pId} not found in catalog.`);
       return NextResponse.json(
         { success: false, message: "Specified product could not be found in WooCommerce catalog." },
         { status: 404 }
       );
     }
 
-    // Construct simple variant fallback if product is non-variable
-    if (!selectedVariant) {
-      selectedVariant = {
-        id: `var-${product.id}-default`,
-        wooVariationId: Number(product.id),
-        sku: product.sku || `SKU-${product.id}`,
-        name: product.title,
+    const isVariableProduct = wooProduct.type === "variable" || wooProduct.hasVariations;
+    let resolvedVariationId: number | null = variationId ? Number(variationId) : (selectedVariant?.wooVariationId || null);
+
+    // 2. Resolve Variation for Variable Product
+    let targetVariant: ProductVariant | null = null;
+
+    if (isVariableProduct) {
+      let rawVar: any = null;
+
+      if (resolvedVariationId) {
+        try {
+          rawVar = await getWooVariationById(pId, resolvedVariationId);
+        } catch (vErr) {
+          rawVar = null;
+        }
+      }
+
+      if (!rawVar) {
+        const rawVariations = await getWooProductVariations(pId);
+        if (resolvedVariationId) {
+          rawVar = rawVariations.find((v) => String(v.id) === String(resolvedVariationId));
+        }
+
+        if (!rawVar && rawVariations.length > 0) {
+          // Find first available variation (purchasable !== false && stock_status !== outofstock)
+          rawVar =
+            rawVariations.find((v) => v.purchasable !== false && v.stock_status !== "outofstock") ||
+            rawVariations[0];
+        }
+      }
+
+      if (!rawVar) {
+        console.warn(`[WOOCOMMERCE CART VALIDATION] Variable product ${pId} has no valid variations.`);
+        return NextResponse.json(
+          { success: false, message: "This product variation is currently unavailable." },
+          { status: 400 }
+        );
+      }
+
+      resolvedVariationId = rawVar.id;
+      const varPrice = parseFloat(rawVar.price || rawVar.regular_price || String(wooProduct.price));
+      const varImage = rawVar.image?.src || wooProduct.featuredImage;
+      const varSku = rawVar.sku || wooProduct.sku || `SKU-${rawVar.id}`;
+      const varName = (rawVar.attributes || []).map((a: any) => a.option).join(" / ") || "Selected Variation";
+
+      const resolvedAttrs: Record<string, string> = {};
+      (rawVar.attributes || []).forEach((a: any) => {
+        if (a.name && a.option) {
+          resolvedAttrs[a.name] = a.option;
+        }
+      });
+
+      const isVarAvailable = rawVar.purchasable !== false && rawVar.stock_status !== "outofstock";
+
+      // [WOOCOMMERCE CART VALIDATION LOGGING]
+      console.log("[WOOCOMMERCE CART VALIDATION]", {
+        productId: pId,
+        variationId: rawVar.id,
+        productType: "variable",
+        productStatus: "publish",
+        purchasable: rawVar.purchasable !== false,
+        manageStock: rawVar.manage_stock ?? false,
+        stockStatus: rawVar.stock_status || "instock",
+        stockQuantity: rawVar.stock_quantity ?? null,
+        resolvedPrice: varPrice,
+        validationResult: isVarAvailable ? "SUCCESS" : "REJECTED",
+        validationReason: isVarAvailable ? "Available in WooCommerce" : "Variation out of stock or unpurchasable",
+      });
+
+      if (!isVarAvailable) {
+        return NextResponse.json(
+          { success: false, message: "This product variation is currently out of stock." },
+          { status: 400 }
+        );
+      }
+
+      targetVariant = {
+        id: `var-${rawVar.id}`,
+        wooVariationId: rawVar.id,
+        sku: varSku,
+        name: varName,
+        colorName: resolvedAttrs["Color"] || resolvedAttrs["Colour"] || "Standard",
+        colorHex: "#8B0000",
+        storage: resolvedAttrs["Storage"] || undefined,
+        attributes: { ...resolvedAttrs, ...(selectedAttributes || {}) },
+        price: varPrice,
+        image: varImage,
+        inStock: true,
+        stockStatus: rawVar.stock_status || "instock",
+      };
+    } else {
+      // Simple Product Validation
+      const isSimpleAvailable = wooProduct.inStock !== false && wooProduct.stockStatus !== "outofstock";
+
+      // [WOOCOMMERCE CART VALIDATION LOGGING]
+      console.log("[WOOCOMMERCE CART VALIDATION]", {
+        productId: pId,
+        variationId: 0,
+        productType: "simple",
+        productStatus: "publish",
+        purchasable: true,
+        manageStock: false,
+        stockStatus: wooProduct.stockStatus || "instock",
+        stockQuantity: null,
+        resolvedPrice: wooProduct.price,
+        validationResult: isSimpleAvailable ? "SUCCESS" : "REJECTED",
+        validationReason: isSimpleAvailable ? "Available in WooCommerce" : "Product out of stock",
+      });
+
+      if (!isSimpleAvailable) {
+        return NextResponse.json(
+          { success: false, message: "This product is currently out of stock." },
+          { status: 400 }
+        );
+      }
+
+      targetVariant = {
+        id: `var-${pId}-default`,
+        wooVariationId: Number(pId),
+        sku: wooProduct.sku || `SKU-${pId}`,
+        name: wooProduct.title,
         colorName: "Standard",
         colorHex: "#8B0000",
         attributes: selectedAttributes || {},
-        price: product.price,
-        image: product.featuredImage,
-        inStock: product.inStock !== false && product.stockStatus !== "outofstock",
-        stockStatus: product.stockStatus || "instock",
+        price: wooProduct.price,
+        image: wooProduct.featuredImage,
+        inStock: true,
+        stockStatus: wooProduct.stockStatus || "instock",
       };
-    }
-
-    if (!selectedVariant || selectedVariant.inStock === false || selectedVariant.stockStatus === "outofstock") {
-      return NextResponse.json(
-        { success: false, message: "This product or selected variation is currently out of stock." },
-        { status: 400 }
-      );
     }
 
     const currentCartItems = await readCartFromFile(context.cartKey);
 
-    const variationKey = variationId || selectedVariant.wooVariationId
-      ? String(variationId || selectedVariant.wooVariationId)
-      : selectedVariant.id !== `var-${pId}-default`
-      ? selectedVariant.id
+    const variationKey = resolvedVariationId
+      ? String(resolvedVariationId)
+      : targetVariant.id !== `var-${pId}-default`
+      ? targetVariant.id
       : "";
 
     const compositeItemId = variationKey ? `${pId}-var-${variationKey}` : `${pId}-var-default`;
@@ -463,23 +541,23 @@ export async function POST(request: NextRequest) {
       updatedItems.push({
         id: compositeItemId,
         productId: String(pId),
-        variationId: variationId || selectedVariant.wooVariationId || null,
-        product,
-        selectedVariant,
+        variationId: resolvedVariationId || null,
+        product: wooProduct,
+        selectedVariant: targetVariant,
         quantity,
         hasProtectionPlan: false,
         protectionPlanCost: 990,
-        sku: selectedVariant.sku || selectedVariant.id,
-        selectedAttributes: selectedVariant.attributes || {},
+        sku: targetVariant.sku || targetVariant.id,
+        selectedAttributes: targetVariant.attributes || {},
       });
     }
 
     // Auto-bundle complimentary gift if applicable
-    const freeGiftBundle = getFreeGiftBundle(product);
+    const freeGiftBundle = getFreeGiftBundle(wooProduct);
     const existingGiftIndex = updatedItems.findIndex((i: any) => i.isFreeGift);
 
     if (freeGiftBundle) {
-      const giftCartItem = createFreeGiftCartItem(product, selectedVariant, freeGiftBundle, quantity);
+      const giftCartItem = createFreeGiftCartItem(wooProduct, targetVariant, freeGiftBundle, quantity);
       if (existingGiftIndex > -1) {
         updatedItems[existingGiftIndex] = giftCartItem;
       } else {
@@ -487,7 +565,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Normalize all items server-side before writing to disk
+    // Normalize all items server-side before writing to Firestore
     const normalizedItems = await Promise.all(
       updatedItems.map((rawItem: any) => normalizeCartItem(rawItem))
     );
@@ -499,45 +577,58 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       cartKey: context.cartKey,
-      customerId: context.customerId,
       items: normalizedItems,
       totals,
     });
   } catch (error: any) {
-    console.error("[API /api/cart POST Error]:", error);
+    console.error("[API /api/cart POST Exception]:", error);
     return NextResponse.json(
-      { success: false, message: error?.message || "Failed to add product to cart." },
+      { success: false, message: "Unable to verify product availability. Please try again." },
       { status: 500 }
     );
   }
 }
 
 /**
- * PUT /api/cart - Update item quantity or toggle VIP protection plan
+ * PUT /api/cart - Update cart item quantity or options
  */
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { itemId, quantity, action } = body;
-
-    if (!itemId) {
-      return NextResponse.json({ success: false, message: "Missing item ID parameter" }, { status: 400 });
+    const context = await resolveCartContext();
+    if (!context.customerId) {
+      return NextResponse.json(
+        { success: false, requireAuth: true, message: "Authentication required to modify shopping bag." },
+        { status: 401 }
+      );
     }
 
-    const context = await resolveCartContext();
-    const currentCartItems = await readCartFromFile(context.cartKey);
+    const body = await request.json();
+    const { itemId, quantity, hasProtectionPlan } = body;
 
-    let updatedItems = currentCartItems.map((item: any) => {
-      if (item.id === itemId) {
-        if (action === "toggle_protection") {
-          return { ...item, hasProtectionPlan: !item.hasProtectionPlan };
-        }
-        if (typeof quantity === "number") {
-          return { ...item, quantity: Math.max(1, quantity) };
-        }
+    if (!itemId) {
+      return NextResponse.json({ success: false, message: "Missing item ID" }, { status: 400 });
+    }
+
+    const currentCartItems = await readCartFromFile(context.cartKey);
+    const targetIndex = currentCartItems.findIndex((i: any) => i.id === itemId);
+
+    if (targetIndex === -1) {
+      return NextResponse.json({ success: false, message: "Cart item not found" }, { status: 404 });
+    }
+
+    let updatedItems = [...currentCartItems];
+
+    if (typeof quantity === "number") {
+      if (quantity <= 0) {
+        updatedItems = updatedItems.filter((i: any) => i.id !== itemId);
+      } else {
+        updatedItems[targetIndex].quantity = quantity;
       }
-      return item;
-    });
+    }
+
+    if (typeof hasProtectionPlan === "boolean" && updatedItems[targetIndex]) {
+      updatedItems[targetIndex].hasProtectionPlan = hasProtectionPlan;
+    }
 
     const normalizedItems = await Promise.all(
       updatedItems.map((rawItem: any) => normalizeCartItem(rawItem))
@@ -548,53 +639,56 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      cartKey: context.cartKey,
-      customerId: context.customerId,
       items: normalizedItems,
       totals,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[API /api/cart PUT Error]:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to update cart item." },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Failed to update cart" }, { status: 500 });
   }
 }
 
 /**
- * DELETE /api/cart - Remove specific item or clear cart
+ * DELETE /api/cart - Remove single item or clear entire cart
  */
 export async function DELETE(request: NextRequest) {
   try {
+    const context = await resolveCartContext();
+    if (!context.customerId) {
+      return NextResponse.json(
+        { success: false, requireAuth: true, message: "Authentication required to modify shopping bag." },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const itemId = searchParams.get("itemId");
     const clearAll = searchParams.get("clear") === "true";
-
-    const context = await resolveCartContext();
 
     if (clearAll) {
       await writeCartToFile(context.cartKey, []);
       return NextResponse.json({
         success: true,
-        cartKey: context.cartKey,
-        customerId: context.customerId,
         items: [],
         totals: { subtotal: 0, discountTotal: 0, shippingTotal: 0, taxTotal: 0, total: 0, totalQuantity: 0 },
       });
     }
 
     if (!itemId) {
-      return NextResponse.json({ success: false, message: "Missing itemId parameter" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing item ID" }, { status: 400 });
     }
 
     const currentCartItems = await readCartFromFile(context.cartKey);
+    const targetItem = currentCartItems.find((i: any) => i.id === itemId);
+
     let updatedItems = currentCartItems.filter((i: any) => i.id !== itemId);
 
-    // Re-eval free gift bundle if main items removed
-    const isMainCartPurchased = updatedItems.some((i: any) => !i.isFreeGift);
-    if (!isMainCartPurchased) {
-      updatedItems = [];
+    // If removed item was associated with a free gift bundle, remove gift item too if no eligible items remain
+    if (targetItem) {
+      const remainingNonGiftItems = updatedItems.filter((i: any) => !i.isFreeGift);
+      if (remainingNonGiftItems.length === 0) {
+        updatedItems = [];
+      }
     }
 
     const normalizedItems = await Promise.all(
@@ -606,16 +700,11 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      cartKey: context.cartKey,
-      customerId: context.customerId,
       items: normalizedItems,
       totals,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[API /api/cart DELETE Error]:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to remove item from cart." },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "Failed to remove cart item" }, { status: 500 });
   }
 }

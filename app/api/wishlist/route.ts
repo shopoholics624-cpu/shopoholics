@@ -23,12 +23,12 @@ interface ResolvedWishlistContext {
  * 
  * Authenticated Customer (e.g. Customer ID #3):
  * - Wishlist Key: "cust_3"
- * - Stored in file: "data/wishlists/cust_3.json"
+ * - Stored in Firestore doc: "wishlists/cust_3"
  * 
  * Guest Customer:
  * - Session ID: "wishlist_sess_..."
  * - Wishlist Key: "guest_wishlist_sess_..."
- * - Stored in file: "data/wishlists/guest_wishlist_sess_....json"
+ * - Stored in Firestore doc: "wishlists/guest_wishlist_sess_..."
  */
 async function resolveWishlistContext(): Promise<ResolvedWishlistContext> {
   const cookieStore = await cookies();

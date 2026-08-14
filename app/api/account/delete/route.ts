@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { AUTH_COOKIE_NAME, getAuthenticatedCustomerSession } from "@/lib/auth";
 import { getWooCustomerById, deleteWooCustomer } from "@/lib/woocommerce";
 import { deleteCartFile } from "@/lib/cart-store";
+import { deleteWishlistFile } from "@/lib/wishlist-store";
 
 // Simple in-memory rate limiting map for deletion requests (max 3 deletion attempts per IP per 15 mins)
 const deleteRateLimitMap = new Map<string, { count: number; expiresAt: number }>();
@@ -106,8 +107,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Delete Persistent Customer Cart File from Disk
+    // 6. Delete Persistent Customer Cart & Wishlist Documents from Firestore
     await deleteCartFile(`cust_${authenticatedCustomerId}`);
+    await deleteWishlistFile(`cust_${authenticatedCustomerId}`);
 
     // 7. Invalidate Authentication Session Cookies
     const cookieStore = await cookies();
