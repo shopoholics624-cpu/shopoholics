@@ -1,0 +1,545 @@
+[
+  {
+    "id": "6052-6063",
+    "productId": "6052",
+    "variationId": 6063,
+    "product": {
+      "id": "6052",
+      "slug": "apple-iphone-17",
+      "title": "Apple IPhone 17",
+      "type": "variable",
+      "hasVariations": true,
+      "tagline": "Apple IPhone 17",
+      "brand": "Mobile Phones",
+      "category": "smartphones",
+      "categorySlugs": [
+        "mobile-phones",
+        "smart-phones"
+      ],
+      "categoryIds": [
+        69,
+        96
+      ],
+      "categories": [
+        {
+          "id": 69,
+          "name": "Mobile Phones",
+          "slug": "mobile-phones"
+        },
+        {
+          "id": 96,
+          "name": "Smart Phones",
+          "slug": "smart-phones"
+        }
+      ],
+      "primaryCategory": {
+        "id": 96,
+        "name": "Smart Phones",
+        "slug": "smart-phones"
+      },
+      "categoryLabel": "Smart Phones",
+      "lifestyle": [
+        "work",
+        "travel"
+      ],
+      "price": 102900,
+      "rating": 4.8,
+      "reviewCount": 12,
+      "isFeatured": false,
+      "isTrending": false,
+      "isNewArrival": true,
+      "emiAvailable": true,
+      "freeDelivery": true,
+      "expressDelivery": true,
+      "featuredImage": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Bk-3.png?fit=2560%2C2560&ssl=1",
+      "images": [
+        "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Colours.png?fit=2560%2C2560&ssl=1",
+        "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Lav-1.png?fit=2560%2C2560&ssl=1",
+        "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/MB-1.png?fit=2560%2C2560&ssl=1",
+        "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Wh-1.png?fit=2560%2C2560&ssl=1",
+        "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Sage-1.png?fit=2560%2C2560&ssl=1",
+        "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Bk-1.png?fit=2560%2C2560&ssl=1"
+      ],
+      "description": "No product description available.",
+      "features": [
+        "Apple IPhone 17 - Official Specifications",
+        "100% Genuine Certified Hardware",
+        "Manufacturer Warranty Included"
+      ],
+      "variants": [
+        {
+          "id": "var-6063",
+          "wooVariationId": 6063,
+          "sku": "i17-BK-512",
+          "name": "512GB / Black",
+          "colorName": "Black",
+          "colorHex": "#1A1A1A",
+          "storage": "512GB",
+          "attributes": {
+            "Size": "512GB",
+            "size": "512GB",
+            "Colour": "Black",
+            "colour": "Black"
+          },
+          "price": 102900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Bk-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-6062",
+          "wooVariationId": 6062,
+          "sku": "i17-WH-512",
+          "name": "512GB / White",
+          "colorName": "White",
+          "colorHex": "#E5E7EB",
+          "storage": "512GB",
+          "attributes": {
+            "Size": "512GB",
+            "size": "512GB",
+            "Colour": "White",
+            "colour": "White"
+          },
+          "price": 102900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Wh-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-6061",
+          "wooVariationId": 6061,
+          "sku": "i17-MB-512",
+          "name": "512GB / Mist Blue",
+          "colorName": "Mist Blue",
+          "colorHex": "#1E3A8A",
+          "storage": "512GB",
+          "attributes": {
+            "Size": "512GB",
+            "size": "512GB",
+            "Colour": "Mist Blue",
+            "colour": "Mist Blue"
+          },
+          "price": 102900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/MB-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-6060",
+          "wooVariationId": 6060,
+          "sku": "i17-SG-512",
+          "name": "512GB / Sage",
+          "colorName": "Sage",
+          "colorHex": "#8B0000",
+          "storage": "512GB",
+          "attributes": {
+            "Size": "512GB",
+            "size": "512GB",
+            "Colour": "Sage",
+            "colour": "Sage"
+          },
+          "price": 82900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Sage-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-6059",
+          "wooVariationId": 6059,
+          "sku": "i17-LV-512",
+          "name": "512GB / Lavender",
+          "colorName": "Lavender",
+          "colorHex": "#581C87",
+          "storage": "512GB",
+          "attributes": {
+            "Size": "512GB",
+            "size": "512GB",
+            "Colour": "Lavender",
+            "colour": "Lavender"
+          },
+          "price": 102900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Lav-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-6058",
+          "wooVariationId": 6058,
+          "sku": "i17-BK-256",
+          "name": "256GB / Black",
+          "colorName": "Black",
+          "colorHex": "#1A1A1A",
+          "storage": "256GB",
+          "attributes": {
+            "Size": "256GB",
+            "size": "256GB",
+            "Colour": "Black",
+            "colour": "Black"
+          },
+          "price": 82900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Bk-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-6057",
+          "wooVariationId": 6057,
+          "sku": "i17-WH-256",
+          "name": "256GB / White",
+          "colorName": "White",
+          "colorHex": "#E5E7EB",
+          "storage": "256GB",
+          "attributes": {
+            "Size": "256GB",
+            "size": "256GB",
+            "Colour": "White",
+            "colour": "White"
+          },
+          "price": 82900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Wh-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-6056",
+          "wooVariationId": 6056,
+          "sku": "i17-MB-256",
+          "name": "256GB / Mist Blue",
+          "colorName": "Mist Blue",
+          "colorHex": "#1E3A8A",
+          "storage": "256GB",
+          "attributes": {
+            "Size": "256GB",
+            "size": "256GB",
+            "Colour": "Mist Blue",
+            "colour": "Mist Blue"
+          },
+          "price": 82900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/MB-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-6055",
+          "wooVariationId": 6055,
+          "sku": "i17-SG-256",
+          "name": "256GB / Sage",
+          "colorName": "Sage",
+          "colorHex": "#8B0000",
+          "storage": "256GB",
+          "attributes": {
+            "Size": "256GB",
+            "size": "256GB",
+            "Colour": "Sage",
+            "colour": "Sage"
+          },
+          "price": 82900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Sage-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-6054",
+          "wooVariationId": 6054,
+          "sku": "i17-LV-256",
+          "name": "256GB / Lavender",
+          "colorName": "Lavender",
+          "colorHex": "#581C87",
+          "storage": "256GB",
+          "attributes": {
+            "Size": "256GB",
+            "size": "256GB",
+            "Colour": "Lavender",
+            "colour": "Lavender"
+          },
+          "price": 82900,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Lav-3.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        }
+      ],
+      "attributeGroups": [
+        {
+          "name": "Size",
+          "options": [
+            "256GB",
+            "512GB"
+          ]
+        },
+        {
+          "name": "Colour",
+          "options": [
+            "Lavender",
+            "Sage",
+            "Mist Blue",
+            "White",
+            "Black"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "name": "Size",
+          "value": "256GB, 512GB",
+          "category": "Performance"
+        },
+        {
+          "name": "Colour",
+          "value": "Lavender, Sage, Mist Blue, White, Black",
+          "category": "Performance"
+        }
+      ],
+      "structuredInfo": {
+        "overview": "No product description available.",
+        "keyFeatures": [
+          "Apple IPhone 17 - Official Specifications",
+          "100% Genuine Certified Hardware",
+          "Manufacturer Warranty Included"
+        ],
+        "warranty": "2-Year Concierge Hardware Warranty",
+        "specs": {
+          "Size": "256GB, 512GB",
+          "size": "256GB, 512GB",
+          "Colour": "Lavender, Sage, Mist Blue, White, Black",
+          "colour": "Lavender, Sage, Mist Blue, White, Black"
+        }
+      },
+      "inStock": true,
+      "stockStatus": "instock"
+    },
+    "selectedVariant": {
+      "id": "var-6063",
+      "wooVariationId": 6063,
+      "sku": "i17-BK-512",
+      "name": "512GB / Black",
+      "colorName": "Black",
+      "colorHex": "#8B0000",
+      "attributes": {
+        "Size": "256GB",
+        "Colour": "Black",
+        "size": "256GB"
+      },
+      "price": 102900,
+      "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/09/Bk-3.png?fit=2560%2C2560&ssl=1",
+      "inStock": true,
+      "stockStatus": "instock"
+    },
+    "quantity": 1,
+    "hasProtectionPlan": true,
+    "protectionPlanCost": 99,
+    "selectedAttributes": {
+      "Size": "256GB",
+      "Colour": "Black",
+      "size": "256GB"
+    },
+    "inStock": true,
+    "unavailable": false
+  },
+  {
+    "id": "5973-var-5977",
+    "productId": "5973",
+    "variationId": 5977,
+    "product": {
+      "id": "5973",
+      "slug": "tally-prime",
+      "title": "Tally Prime",
+      "type": "variable",
+      "hasVariations": true,
+      "tagline": "Tally Prime",
+      "brand": "Apps &amp; Softwares",
+      "category": "smartphones",
+      "categorySlugs": [
+        "apps-softwares"
+      ],
+      "categoryIds": [
+        296
+      ],
+      "categories": [
+        {
+          "id": 296,
+          "name": "Apps & Softwares",
+          "slug": "apps-softwares"
+        }
+      ],
+      "primaryCategory": {
+        "id": 296,
+        "name": "Apps & Softwares",
+        "slug": "apps-softwares"
+      },
+      "categoryLabel": "Apps & Softwares",
+      "lifestyle": [
+        "work",
+        "travel"
+      ],
+      "price": 5000,
+      "rating": 4.8,
+      "reviewCount": 12,
+      "isFeatured": false,
+      "isTrending": false,
+      "isNewArrival": true,
+      "emiAvailable": true,
+      "freeDelivery": true,
+      "expressDelivery": true,
+      "featuredImage": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/06/Tally-Prime-scaled.png?fit=2560%2C2560&ssl=1",
+      "images": [
+        "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/06/Tally-Prime-scaled.png?fit=2560%2C2560&ssl=1"
+      ],
+      "description": "No product description available.",
+      "features": [
+        "Tally Prime - Official Specifications",
+        "100% Genuine Certified Hardware",
+        "Manufacturer Warranty Included"
+      ],
+      "variants": [
+        {
+          "id": "var-5977",
+          "wooVariationId": 5977,
+          "sku": "Tally-P-G",
+          "name": "Patch / Gold - Multi User",
+          "colorName": "Standard",
+          "colorHex": "#8B0000",
+          "attributes": {
+            "Activation": "Patch",
+            "activation": "Patch",
+            "User": "Gold - Multi User",
+            "user": "Gold - Multi User"
+          },
+          "price": 5000,
+          "originalPrice": 79650,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/06/Tally-Prime-scaled.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-5976",
+          "wooVariationId": 5976,
+          "sku": "Tally-P-S",
+          "name": "Patch / Silver - Single User",
+          "colorName": "Standard",
+          "colorHex": "#8B0000",
+          "attributes": {
+            "Activation": "Patch",
+            "activation": "Patch",
+            "User": "Silver - Single User",
+            "user": "Silver - Single User"
+          },
+          "price": 2500,
+          "originalPrice": 26550,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/06/Tally-Prime-scaled.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-5975",
+          "wooVariationId": 5975,
+          "sku": "Tally-G-G",
+          "name": "Genuine / Gold - Multi User",
+          "colorName": "Standard",
+          "colorHex": "#8B0000",
+          "attributes": {
+            "Activation": "Genuine",
+            "activation": "Genuine",
+            "User": "Gold - Multi User",
+            "user": "Gold - Multi User"
+          },
+          "price": 79649,
+          "originalPrice": 79650,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/06/Tally-Prime-scaled.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        },
+        {
+          "id": "var-5974",
+          "wooVariationId": 5974,
+          "sku": "Tally-G-S",
+          "name": "Genuine / Silver - Single User",
+          "colorName": "Standard",
+          "colorHex": "#8B0000",
+          "attributes": {
+            "Activation": "Genuine",
+            "activation": "Genuine",
+            "User": "Silver - Single User",
+            "user": "Silver - Single User"
+          },
+          "price": 26549,
+          "originalPrice": 26550,
+          "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/06/Tally-Prime-scaled.png?fit=2560%2C2560&ssl=1",
+          "inStock": true,
+          "stockStatus": "instock"
+        }
+      ],
+      "attributeGroups": [
+        {
+          "name": "Activation",
+          "options": [
+            "Genuine",
+            "Patch"
+          ]
+        },
+        {
+          "name": "User",
+          "options": [
+            "Silver - Single User",
+            "Gold - Multi User"
+          ]
+        }
+      ],
+      "specs": [
+        {
+          "name": "Activation",
+          "value": "Genuine, Patch",
+          "category": "Performance"
+        },
+        {
+          "name": "User",
+          "value": "Silver - Single User, Gold - Multi User",
+          "category": "Performance"
+        }
+      ],
+      "structuredInfo": {
+        "overview": "No product description available.",
+        "keyFeatures": [
+          "Tally Prime - Official Specifications",
+          "100% Genuine Certified Hardware",
+          "Manufacturer Warranty Included"
+        ],
+        "warranty": "2-Year Concierge Hardware Warranty",
+        "specs": {
+          "Activation": "Genuine, Patch",
+          "activation": "Genuine, Patch",
+          "User": "Silver - Single User, Gold - Multi User",
+          "user": "Silver - Single User, Gold - Multi User"
+        }
+      },
+      "inStock": true,
+      "stockStatus": "instock"
+    },
+    "selectedVariant": {
+      "id": "var-5977",
+      "wooVariationId": 5977,
+      "sku": "Tally-P-G",
+      "name": "Patch / Gold - Multi User",
+      "colorName": "Standard",
+      "colorHex": "#8B0000",
+      "attributes": {
+        "Activation": "Genuine",
+        "User": "Gold - Multi User",
+        "activation": "Genuine"
+      },
+      "price": 5000,
+      "image": "https://i0.wp.com/shopoholics.in/wp-content/uploads/2025/06/Tally-Prime-scaled.png?fit=2560%2C2560&ssl=1",
+      "inStock": true,
+      "stockStatus": "instock"
+    },
+    "quantity": 1,
+    "hasProtectionPlan": false,
+    "protectionPlanCost": 990,
+    "selectedAttributes": {
+      "Activation": "Genuine",
+      "User": "Gold - Multi User",
+      "activation": "Genuine"
+    },
+    "inStock": true,
+    "unavailable": false
+  }
+]

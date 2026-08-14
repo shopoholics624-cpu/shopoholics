@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Gift, Sparkles, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
+import { Gift, CheckCircle2, Clock, ShieldCheck } from "lucide-react";
 import { FreeGiftBundle } from "@/types/product";
 import { formatPrice } from "@/lib/utils";
 
@@ -57,7 +57,6 @@ export function FreeGiftBundleCard({ bundle }: FreeGiftBundleCardProps) {
         {/* Free Gift Details */}
         <div className="sm:col-span-8 space-y-1">
           <div className="flex items-center gap-1 text-[#8b0000]">
-            <Sparkles className="w-3 h-3 text-[#e51c10]" />
             <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider">
               {bundle.badgeText || "🎁 COMPLIMENTARY GIFT"}
             </span>

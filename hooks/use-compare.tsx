@@ -15,10 +15,7 @@ interface CompareContextType {
 const CompareContext = createContext<CompareContextType | undefined>(undefined);
 
 export function CompareProvider({ children }: { children: ReactNode }) {
-  const [compareList, setCompareList] = useState<Product[]>([
-    PRODUCTS[0],
-    PRODUCTS[1],
-  ]);
+  const [compareList, setCompareList] = useState<Product[]>([]);
 
   const addToCompare = useCallback((product: Product) => {
     setCompareList((prev) => {

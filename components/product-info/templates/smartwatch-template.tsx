@@ -5,6 +5,8 @@ import { UnitSystem, formatDimension, convertMeasurement, isValidValue } from "@
 import { SpecRow, SpecSectionHeader } from "../spec-row";
 import { Package, ShieldCheck, CheckCircle2 } from "lucide-react";
 
+import { DescriptionRenderer } from "../description-renderer";
+
 interface SmartwatchTemplateProps {
   product: Product;
   unitSystem: UnitSystem;
@@ -19,18 +21,20 @@ export function SmartwatchTemplate({ product, unitSystem }: SmartwatchTemplatePr
     return found ? found.value : null;
   };
 
-  const overview = sInfo?.overview || product.description;
+  const overview = (product.description && product.description.trim()) || (sInfo?.overview && sInfo.overview.trim()) || "No product description available.";
   const keyFeatures = sInfo?.keyFeatures || product.features;
 
   const displaySize = s.displaySize || getLegacySpec("Display Size") || getLegacySpec("Display");
+  const displayResolution = s.displayResolution || getLegacySpec("Resolution");
   const processor = s.processor || getLegacySpec("Processor");
   const storage = s.storage || getLegacySpec("Storage");
-  const healthFeatures = s.healthFeatures || getLegacySpec("Health Features") || getLegacySpec("Health");
-  const fitnessTracking = s.fitnessTracking || getLegacySpec("Fitness Tracking") || getLegacySpec("Sports");
   const sensors = s.sensors || getLegacySpec("Sensors");
-  const connectivity = s.connectivity || getLegacySpec("Connectivity") || getLegacySpec("GPS");
+  const healthFeatures = s.healthFeatures || getLegacySpec("Health Sensors") || getLegacySpec("Sensors");
+  const fitnessTracking = s.fitnessTracking || getLegacySpec("Fitness Tracking") || getLegacySpec("Workouts");
+  const os = s.os || getLegacySpec("OS") || getLegacySpec("Operating System");
+  const connectivity = s.connectivity || getLegacySpec("Connectivity") || getLegacySpec("Cellular");
   const batteryLife = s.batteryLife || getLegacySpec("Battery Life") || getLegacySpec("Battery");
-  const waterResistance = s.waterResistance || getLegacySpec("Water Resistance") || getLegacySpec("IP Rating");
+  const waterResistance = s.waterResistance || getLegacySpec("Water Resistance") || getLegacySpec("Waterproof");
   const compatibility = s.compatibility || getLegacySpec("Compatibility") || getLegacySpec("OS Support");
 
   // Dimensions & Weight
@@ -41,12 +45,12 @@ export function SmartwatchTemplate({ product, unitSystem }: SmartwatchTemplatePr
 
   const whatsInTheBox = sInfo?.whatsInTheBox || [
     `${product.title}`,
-    "Sport Band / Strap",
-    "Magnetic Fast Charging Cable",
-    "User Manual",
+    "Sport Band / Titanium Strap",
+    "Magnetic Fast Charger to USB-C Cable",
+    "Documentation",
   ];
 
-  const warranty = sInfo?.warranty || "2-Year Official Smartwatch Manufacturer Warranty";
+  const warranty = sInfo?.warranty || "2-Year Official Manufacturer Warranty";
 
   return (
     <div className="space-y-10 text-[#261816]">
@@ -56,9 +60,7 @@ export function SmartwatchTemplate({ product, unitSystem }: SmartwatchTemplatePr
           <h2 className="text-sm sm:text-base font-black text-[#8b0000] uppercase tracking-wider">
             PRODUCT OVERVIEW
           </h2>
-          <p className="text-xs sm:text-sm text-[#5a403c] leading-relaxed bg-[#faf8f8] p-4 rounded-2xl border border-[#e3beb8]/40">
-            {overview}
-          </p>
+          <DescriptionRenderer htmlContent={overview} />
         </section>
       )}
 

@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { SlidersHorizontal, RotateCcw, X } from "lucide-react";
+import { WooCategory, WooBrand } from "@/types/woocommerce";
 
 interface FilterSidebarProps {
   selectedCategory: string;
@@ -31,41 +33,65 @@ export function FilterSidebar({
   resetFilters,
   onClose,
 }: FilterSidebarProps) {
-  const categories = [
+  const [categories, setCategories] = useState<{ id: string; label: string; count?: number }[]>([
     { id: "all", label: "All Hardware" },
-    { id: "smartphones", label: "Smartphones" },
-    { id: "laptops", label: "Laptops & Compute" },
-    { id: "audio", label: "Studio Audio" },
-    { id: "wearables", label: "Wearables & GPS" },
-    { id: "gaming", label: "Gaming Consoles & PCs" },
-    { id: "cameras", label: "Cameras & Drones" },
-    { id: "smarthome", label: "Smart Home Automation" },
-    { id: "monitors", label: "Monitors & Displays" },
-  ];
+  ]);
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([
+    { id: "all", name: "All Brands" },
+  ]);
 
-  const brands = [
-    "All Brands",
-    "Apple",
-    "Samsung",
-    "Sony",
-    "ASUS",
-    "Canon",
-    "Dell",
-    "Logitech",
-    "Razer",
-  ];
+  useEffect(() => {
+    let isMounted = true;
 
-  const lifestyles = [
-    { id: "all", label: "All Lifestyles" },
-    { id: "gaming", label: "🎮 Gaming Setup" },
-    { id: "creator", label: "🎥 Creator Studio" },
-    { id: "photography", label: "📸 Photography" },
-    { id: "music", label: "🎧 Music Lovers" },
-    { id: "work", label: "💼 Work From Home" },
-    { id: "student", label: "🎓 Student Essentials" },
-    { id: "smarthome", label: "🏠 Smart Home" },
-    { id: "travel", label: "✈️ Travel Tech" },
-  ];
+    async function fetchFilterData() {
+      try {
+        const [catRes, brandRes] = await Promise.all([
+          fetch("/api/categories"),
+          fetch("/api/brands"),
+        ]);
+
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          if (isMounted && catData.success && Array.isArray(catData.categories) && catData.categories.length > 0) {
+            const list = [
+              { id: "all", label: "All Hardware" },
+              ...catData.categories
+                .filter((c: WooCategory) => typeof c.count !== "number" || c.count > 0)
+                .map((c: WooCategory) => ({
+                  id: c.slug,
+                  label: (c.name || "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
+                  count: c.count,
+                })),
+            ];
+            setCategories(list);
+          }
+        }
+
+        if (brandRes.ok) {
+          const brandData = await brandRes.json();
+          if (isMounted && brandData.success && Array.isArray(brandData.brands) && brandData.brands.length > 0) {
+            const list = [
+              { id: "all", name: "All Brands" },
+              ...brandData.brands.map((b: WooBrand) => ({
+                id: b.slug,
+                name: (b.name || "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"),
+              })),
+            ];
+            setBrands(list);
+          }
+        }
+      } catch (err) {
+        console.warn("[FilterSidebar] Category/Brand fetch fallback:", err);
+      }
+    }
+
+    fetchFilterData();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+
 
   return (
     <aside className="w-full bg-white rounded-3xl p-5 sm:p-6 border border-[#e3beb8]/60 shadow-lux space-y-6">
@@ -127,60 +153,40 @@ export function FilterSidebar({
         <div className="flex flex-wrap gap-1.5">
           {brands.map((b) => (
             <button
-              key={b}
-              onClick={() => setSelectedBrand(b === "All Brands" ? "all" : b)}
+              key={b.id}
+              onClick={() => setSelectedBrand(b.id)}
               className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
-                (selectedBrand === "all" && b === "All Brands") || selectedBrand === b
+                (selectedBrand === "all" && b.id === "all") || selectedBrand.toLowerCase() === b.id.toLowerCase() || selectedBrand.toLowerCase() === b.name.toLowerCase()
                   ? "bg-[#8b0000] text-white border-[#8b0000]"
                   : "bg-white text-[#5a403c] border-[#e3beb8]/60 hover:bg-[#ffe9e6]"
               }`}
             >
-              {b}
+              {b.name}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Lifestyle Select */}
-      <div className="space-y-2 pt-4 border-t border-[#ffe9e6]">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-[#8e706b]">
-          Shop By Category
-        </h4>
-        <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1 scroll-smooth no-scrollbar">
-          {lifestyles.map((l) => (
-            <button
-              key={l.id}
-              onClick={() => setSelectedLifestyle(l.id)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
-                selectedLifestyle === l.id
-                  ? "bg-[#8b0000] text-white shadow-sm"
-                  : "text-[#5a403c] hover:bg-[#fff0ee] hover:text-[#8b0000]"
-              }`}
-            >
-              <span>{l.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+
 
       {/* Max Price Slider */}
       <div className="space-y-3 pt-4 border-t border-[#ffe9e6]">
         <div className="flex items-center justify-between text-xs font-bold">
           <span className="uppercase tracking-wider text-[#8e706b]">Max Price</span>
-          <span className="text-[#8b0000] text-sm font-extrabold">${priceRange}</span>
+          <span className="text-[#8b0000] text-sm font-extrabold">₹{priceRange.toLocaleString("en-IN")}</span>
         </div>
         <input
           type="range"
-          min={200}
-          max={4000}
-          step={100}
+          min={1000}
+          max={500000}
+          step={5000}
           value={priceRange}
           onChange={(e) => setPriceRange(Number(e.target.value))}
           className="w-full h-2 accent-[#8b0000] bg-[#ffe9e6] rounded-lg cursor-pointer"
         />
         <div className="flex justify-between text-[11px] text-[#5a403c] font-medium">
-          <span>$200</span>
-          <span>$4,000</span>
+          <span>₹1,000</span>
+          <span>₹5,00,000</span>
         </div>
       </div>
 

@@ -52,8 +52,8 @@ export function PromoDealsShowcase() {
   ];
 
   return (
-    <section className="py-10 sm:py-16 lg:py-20 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <section className="py-4 sm:py-6 lg:py-8 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Section Header */}
         <div className="flex items-center justify-between border-b border-[#e3beb8]/40 pb-5">
           <div>

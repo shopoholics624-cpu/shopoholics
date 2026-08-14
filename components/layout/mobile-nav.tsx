@@ -2,19 +2,21 @@
 
 import { DemoLink as Link } from "@/components/demo/demo-link";
 import { usePathname } from "next/navigation";
-import { Home, Store, ArrowLeftRight, ShoppingBag, User } from "lucide-react";
+import { Home, Store, ArrowLeftRight, ShoppingBag, User, Heart } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useCompare } from "@/hooks/use-compare";
+import { useWishlist } from "@/hooks/use-wishlist";
 
 export function MobileNav() {
   const pathname = usePathname();
   const { itemCount } = useCart();
   const { compareList } = useCompare();
+  const { wishlistCount } = useWishlist();
 
   const items = [
     { name: "Home", href: "/", icon: Home },
     { name: "Shop", href: "/shop", icon: Store },
-    { name: "Compare", href: "/compare", icon: ArrowLeftRight, badge: compareList.length },
+    { name: "Wishlist", href: "/wishlist", icon: Heart, badge: wishlistCount },
     { name: "Bag", href: "/cart", icon: ShoppingBag, badge: itemCount },
     { name: "Account", href: "/account/orders", icon: User },
   ];

@@ -94,5 +94,6 @@ export function createFreeGiftCartItem(
       giftDescription: bundle.giftDescription,
       badgeText: bundle.badgeText || "🎁 FREE GIFT",
     },
+    inStock: true,
   };
 }

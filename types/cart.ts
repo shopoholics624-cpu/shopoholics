@@ -17,6 +17,21 @@ export interface CartItem {
     giftDescription: string;
     badgeText: string;
   };
+  productId?: string;
+  variationId?: number | string | null;
+  sku?: string;
+  selectedAttributes?: Record<string, string>;
+  inStock: boolean;
+  unavailable?: boolean;
+}
+
+export interface WooCommerceCartTotals {
+  subtotal: number;
+  discountTotal: number;
+  taxTotal: number;
+  shippingTotal: number;
+  total: number;
+  totalQuantity: number;
 }
 
 export interface GstDetails {
@@ -27,15 +42,21 @@ export interface GstDetails {
 }
 
 export interface ShippingAddress {
-  fullName: string;
+  firstName: string;
+  lastName: string;
+  company?: string;
   email: string;
   phone: string;
-  addressLine1: string;
-  addressLine2?: string;
+  address1: string;
+  address2?: string;
   city: string;
   state: string;
-  postalCode: string;
+  postcode: string;
   country: string;
+  fullName?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  postalCode?: string;
   gstDetails?: GstDetails;
 }
 

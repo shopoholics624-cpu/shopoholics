@@ -1,15 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DemoLink as Link } from "@/components/demo/demo-link";
 import { useDemo } from "@/hooks/use-demo";
-import { Heart, ArrowUpRight, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Heart, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { PRODUCTS } from "@/constants/products";
 import { formatPrice } from "@/lib/utils";
 
 export function BentoShowcase() {
   const { handleDemoAction } = useDemo();
   const [favoriteIndex, setFavoriteIndex] = useState(0);
+  const [products, setProducts] = useState(PRODUCTS);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchBentoProducts() {
+      try {
+        const res = await fetch("/api/products?per_page=12");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.products) && data.products.length >= 2) {
+            setProducts(data.products);
+          }
+        }
+      } catch (err) {
+        console.warn("[BentoShowcase] WooCommerce fetch fallback:", err);
+      }
+    }
+    fetchBentoProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const favoriteItems = [
     {
@@ -35,8 +57,8 @@ export function BentoShowcase() {
   };
 
   return (
-    <section className="py-10 sm:py-16 lg:py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <section className="py-4 sm:py-6 lg:py-8 bg-white">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D4D3CD]/60 pb-5">
           <div>
@@ -205,11 +227,11 @@ export function BentoShowcase() {
                     </button>
                   </div>
 
-                  <Link href={`/products/${PRODUCTS[0].slug}`}>
+                  <Link href={`/products/${products[0]?.slug || PRODUCTS[0].slug}`}>
                     {/* eslint-disable-next-img-element */}
                     <img
-                      src={PRODUCTS[0].featuredImage}
-                      alt={PRODUCTS[0].title}
+                      src={products[0]?.featuredImage || PRODUCTS[0].featuredImage}
+                      alt={products[0]?.title || PRODUCTS[0].title}
                       className="w-full h-28 sm:h-36 object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
                     />
                   </Link>
@@ -221,15 +243,15 @@ export function BentoShowcase() {
                       Our Picks
                     </span>
                     <h4 className="font-extrabold text-xs text-[#1C1C1A] line-clamp-1 mt-0.5">
-                      {PRODUCTS[0].title}
+                      {products[0]?.title || PRODUCTS[0].title}
                     </h4>
                   </div>
 
                   <Link
-                    href={`/products/${PRODUCTS[0].slug}`}
+                    href={`/products/${products[0]?.slug || PRODUCTS[0].slug}`}
                     className="px-3 py-1 rounded-full bg-[#8b0000] hover:bg-[#bc0000] text-white font-bold text-xs shadow-sm transition-colors shrink-0"
                   >
-                    {formatPrice(PRODUCTS[0].price)}
+                    {formatPrice(products[0]?.price || PRODUCTS[0].price)}
                   </Link>
                 </div>
               </div>
@@ -251,11 +273,11 @@ export function BentoShowcase() {
                     </button>
                   </div>
 
-                  <Link href={`/products/${PRODUCTS[1].slug}`}>
+                  <Link href={`/products/${products[1]?.slug || PRODUCTS[1].slug}`}>
                     {/* eslint-disable-next-img-element */}
                     <img
-                      src={PRODUCTS[1].featuredImage}
-                      alt={PRODUCTS[1].title}
+                      src={products[1]?.featuredImage || PRODUCTS[1].featuredImage}
+                      alt={products[1]?.title || PRODUCTS[1].title}
                       className="w-full h-28 sm:h-36 object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
                     />
                   </Link>
@@ -267,15 +289,15 @@ export function BentoShowcase() {
                       Best Seller
                     </span>
                     <h4 className="font-extrabold text-xs text-[#1C1C1A] line-clamp-1 mt-0.5">
-                      {PRODUCTS[1].title}
+                      {products[1]?.title || PRODUCTS[1].title}
                     </h4>
                   </div>
 
                   <Link
-                    href={`/products/${PRODUCTS[1].slug}`}
+                    href={`/products/${products[1]?.slug || PRODUCTS[1].slug}`}
                     className="px-3 py-1 rounded-full bg-[#8b0000] hover:bg-[#bc0000] text-white font-bold text-xs shadow-sm transition-colors shrink-0"
                   >
-                    {formatPrice(PRODUCTS[1].price)}
+                    {formatPrice(products[1]?.price || PRODUCTS[1].price)}
                   </Link>
                 </div>
               </div>

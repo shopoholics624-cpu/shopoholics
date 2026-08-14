@@ -11,7 +11,6 @@ import {
   ArrowLeftRight,
   X,
   Plus,
-  Sparkles,
   ArrowLeft,
 } from "lucide-react";
 import { useState } from "react";
@@ -97,16 +96,32 @@ export default function ComparePage() {
                       </span>
                     </div>
 
-                    <button
-                      onClick={() => handleAddToCart(product)}
-                      className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm min-h-[44px] ${
-                        addingId === product.id
-                          ? "bg-emerald-700 text-white"
-                          : "bg-[#8b0000] hover:bg-[#bc0000] text-white"
-                      }`}
-                    >
-                      {addingId === product.id ? "Added!" : "Add to Bag"}
-                    </button>
+                    {(() => {
+                      const isCompareInStock =
+                        product.variants && product.variants.length > 0
+                          ? product.variants.some((v) => v.inStock && v.stockStatus !== "outofstock")
+                          : true;
+
+                      return isCompareInStock ? (
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm min-h-[44px] ${
+                            addingId === product.id
+                              ? "bg-emerald-700 text-white"
+                              : "bg-[#8b0000] hover:bg-[#bc0000] text-white"
+                          }`}
+                        >
+                          {addingId === product.id ? "Added!" : "Add to Bag"}
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="w-full py-2.5 rounded-xl text-xs font-extrabold bg-[#e3beb8]/60 text-[#8e706b] border border-[#e3beb8] cursor-not-allowed shadow-none min-h-[44px] uppercase tracking-wider"
+                        >
+                          Out of Stock
+                        </button>
+                      );
+                    })()}
                   </div>
                 ))}
 
@@ -124,8 +139,8 @@ export default function ComparePage() {
 
               {/* Spec Rows */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#8b0000] flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Display & Display Refresh Rate
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#8b0000]">
+                  Display & Display Refresh Rate
                 </h4>
 
                 <div className="grid grid-cols-5 gap-6 text-xs py-3 border-b border-[#ffe9e6]">
@@ -137,8 +152,8 @@ export default function ComparePage() {
                   ))}
                 </div>
 
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#8b0000] flex items-center gap-1.5 pt-2">
-                  <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Processor & Compute Architecture
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#8b0000] pt-2">
+                  Processor & Compute Architecture
                 </h4>
 
                 <div className="grid grid-cols-5 gap-6 text-xs py-3 border-b border-[#ffe9e6]">
@@ -150,8 +165,8 @@ export default function ComparePage() {
                   ))}
                 </div>
 
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#8b0000] flex items-center gap-1.5 pt-2">
-                  <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Enclosure Materials & Battery Endurance
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#8b0000] pt-2">
+                  Enclosure Materials & Battery Endurance
                 </h4>
 
                 <div className="grid grid-cols-5 gap-6 text-xs py-3">

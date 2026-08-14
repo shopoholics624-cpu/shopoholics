@@ -8,22 +8,12 @@ import {
   MapPin,
   Mail,
   Clock,
-  ShieldCheck,
-  Lock,
-  RotateCcw,
-  Headphones,
-  Send,
   ArrowUpRight,
 } from "lucide-react";
 import { useDemo } from "@/hooks/use-demo";
 
 export function Footer() {
   const { handleDemoAction } = useDemo();
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleDemoAction(e);
-  };
 
   return (
     <footer className="w-full bg-[#0b0e14] text-slate-300 pt-14 pb-24 md:pb-14 border-t border-[#1b2333]">
@@ -32,18 +22,13 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-10">
           {/* Column 1: Brand, Subscribe & Socials */}
           <div className="lg:col-span-4 space-y-5">
-            <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="w-11 h-11 rounded-2xl bg-[#e51937] text-white flex items-center justify-center font-extrabold text-2xl shadow-lg shrink-0 group-hover:scale-105 transition-transform">
-                S
-              </div>
-              <div>
-                <h2 className="font-extrabold text-2xl tracking-tight text-white leading-tight">
-                  Shop-O-Holics
-                </h2>
-                <span className="text-[10px] font-extrabold tracking-widest uppercase text-[#e51937] block">
-                  CRIMSON LUXE SYSTEM
-                </span>
-              </div>
+            <Link href="/" className="inline-flex items-center group">
+              {/* eslint-disable-next-img-element */}
+              <img
+                src="/images/logo-cropped.png"
+                alt="Shop-O-Holics - Spend Less, Save More... Shop Smart!!!"
+                className="h-8 sm:h-9 max-w-[160px] sm:max-w-[190px] w-auto object-contain transition-transform group-hover:scale-105"
+              />
             </Link>
 
             <p className="text-xs text-slate-400 leading-relaxed font-medium max-w-sm">
@@ -51,31 +36,6 @@ export function Footer() {
             </p>
 
             <div className="w-8 h-0.5 bg-[#e51937] rounded-full" />
-
-            {/* Stay Updated Newsletter */}
-            <div className="space-y-2">
-              <span className="text-xs font-black text-white uppercase tracking-wider block">
-                STAY UPDATED
-              </span>
-              <span className="text-[11px] text-slate-400 block">
-                Subscribe for new launches, offers & updates.
-              </span>
-              <form onSubmit={handleSubscribe} className="relative flex items-center max-w-sm">
-                <input
-                  type="email"
-                  required
-                  placeholder="Enter your email address"
-                  className="w-full bg-[#131924] border border-[#212c40] text-xs px-4 py-3 rounded-xl text-white placeholder:text-slate-500 focus:outline-none focus:border-[#e51937] pr-12 transition-colors"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-1.5 p-2 bg-[#e51937] hover:bg-[#c4122d] text-white rounded-lg transition-colors shadow-md"
-                  aria-label="Subscribe"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
-              </form>
-            </div>
 
             {/* Follow Us Socials */}
             <div className="space-y-2 pt-1">
@@ -197,10 +157,7 @@ export function Footer() {
               {[
                 { label: "My Account", href: "/account/orders" },
                 { label: "My Orders", href: "/account/orders" },
-                { label: "My Wishlist", href: "/compare" },
-                { label: "Gift Certificates", action: handleDemoAction },
                 { label: "Track Order", href: "/account/orders" },
-                { label: "Affiliates", action: handleDemoAction },
                 { label: "Logout", action: handleDemoAction },
               ].map((item, idx) => (
                 <li key={idx}>
@@ -309,49 +266,6 @@ export function Footer() {
                   <div className="text-[#e51937] font-bold">Sun: Closed</div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Integrated Value Props Banner */}
-        <div className="bg-[#111622] border border-[#1f293b] rounded-2xl p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-xs text-slate-300 divide-y sm:divide-y-0 sm:divide-x divide-[#1b2333]">
-          <div className="flex items-center gap-3.5 sm:pr-4">
-            <div className="p-2.5 rounded-xl bg-[#1d2638] text-white shrink-0 border border-[#2d3a54]">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-xs">100% Original Products</h4>
-              <p className="text-[11px] text-slate-400">Sourced directly from brands</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3.5 pt-4 sm:pt-0 sm:px-4">
-            <div className="p-2.5 rounded-xl bg-[#1d2638] text-white shrink-0 border border-[#2d3a54]">
-              <Lock className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-xs">Secure Payments</h4>
-              <p className="text-[11px] text-slate-400">Safe & encrypted checkout</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3.5 pt-4 sm:pt-0 sm:px-4">
-            <div className="p-2.5 rounded-xl bg-[#1d2638] text-white shrink-0 border border-[#2d3a54]">
-              <RotateCcw className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-xs">Easy Returns</h4>
-              <p className="text-[11px] text-slate-400">Hassle-free return policy</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3.5 pt-4 sm:pt-0 sm:pl-4">
-            <div className="p-2.5 rounded-xl bg-[#1d2638] text-white shrink-0 border border-[#2d3a54]">
-              <Headphones className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="font-bold text-white text-xs">24/7 Customer Support</h4>
-              <p className="text-[11px] text-slate-400">We&apos;re here to help you</p>
             </div>
           </div>
         </div>

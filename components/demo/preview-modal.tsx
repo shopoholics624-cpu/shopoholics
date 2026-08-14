@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, X, ShieldCheck } from "lucide-react";
+import { X, ShieldCheck } from "lucide-react";
 
 interface PreviewModalProps {
   isOpen: boolean;
@@ -77,13 +77,13 @@ export function PreviewModal({ isOpen, onClose }: PreviewModalProps) {
                 <X className="w-5 h-5" />
               </button>
 
-              {/* Animated Floating ✨ Icon Header */}
+              {/* Animated Floating Icon Header */}
               <motion.div
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8b0000] to-[#e51c10] text-white shadow-[0_8px_24px_rgba(229,28,16,0.4)] border border-white/20 mx-auto"
               >
-                <Sparkles className="w-8 h-8 text-white animate-spin-slow" />
+                <ShieldCheck className="w-8 h-8 text-white" />
               </motion.div>
 
               {/* Title & Metadata Badges */}

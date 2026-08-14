@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Gift, Sparkles, CheckCircle2 } from "lucide-react";
+import { Gift, CheckCircle2 } from "lucide-react";
 
 export function FreeGiftBanner({ giftCount = 1 }: { giftCount?: number }) {
   return (
@@ -20,7 +20,7 @@ export function FreeGiftBanner({ giftCount = 1 }: { giftCount?: number }) {
 
           <div className="space-y-0.5">
             <div className="flex items-center gap-1.5 text-xs font-bold text-amber-200 uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" /> Promotion Unlocked
+              <CheckCircle2 className="w-3.5 h-3.5" /> Promotion Unlocked
             </div>
             <h3 className="text-sm sm:text-base font-extrabold tracking-tight">
               🎁 Congratulations! You&apos;ve unlocked {giftCount} FREE Gift{giftCount > 1 ? "s" : ""} with your purchase.

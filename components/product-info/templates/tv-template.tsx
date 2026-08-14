@@ -5,6 +5,8 @@ import { UnitSystem, formatDimension, convertMeasurement, isValidValue } from "@
 import { SpecRow, SpecSectionHeader } from "../spec-row";
 import { Package, ShieldCheck, CheckCircle2 } from "lucide-react";
 
+import { DescriptionRenderer } from "../description-renderer";
+
 interface TVTemplateProps {
   product: Product;
   unitSystem: UnitSystem;
@@ -19,19 +21,19 @@ export function TVTemplate({ product, unitSystem }: TVTemplateProps) {
     return found ? found.value : null;
   };
 
-  const overview = sInfo?.overview || product.description;
+  const overview = (product.description && product.description.trim()) || (sInfo?.overview && sInfo.overview.trim()) || "No product description available.";
   const keyFeatures = sInfo?.keyFeatures || product.features;
 
-  const displaySize = s.displaySize || getLegacySpec("Screen Size") || getLegacySpec("Display Size");
+  const displaySize = s.displaySize || getLegacySpec("Screen Size") || getLegacySpec("Display");
   const displayResolution = s.displayResolution || getLegacySpec("Resolution");
   const refreshRate = s.refreshRate || getLegacySpec("Refresh Rate");
-  const hdrSupport = s.hdrSupport || getLegacySpec("HDR") || getLegacySpec("HDR Support");
-  const pictureTechnology = s.pictureTechnology || getLegacySpec("Picture Technology") || getLegacySpec("Panel");
-  const audio = s.audio || getLegacySpec("Audio") || getLegacySpec("Sound Output");
-  const smartTvPlatform = s.smartTvPlatform || getLegacySpec("Smart TV Platform") || getLegacySpec("OS");
-  const ports = s.ports || getLegacySpec("Ports") || getLegacySpec("HDMI / USB");
+  const hdrSupport = s.hdrSupport || getLegacySpec("HDR Format") || getLegacySpec("HDR");
+  const pictureTechnology = s.pictureTechnology || getLegacySpec("Panel Technology") || getLegacySpec("Display Tech");
+  const smartTvPlatform = s.smartTvPlatform || getLegacySpec("Smart Platform") || getLegacySpec("OS");
+  const ports = s.ports || getLegacySpec("HDMI / USB Ports") || getLegacySpec("Inputs");
   const wireless = s.wireless || getLegacySpec("Wi-Fi / Bluetooth") || getLegacySpec("Connectivity");
-  const powerConsumption = s.powerConsumption || getLegacySpec("Power Consumption") || getLegacySpec("Power");
+  const audio = s.audio || getLegacySpec("Sound System") || getLegacySpec("Audio");
+  const powerConsumption = s.powerConsumption || getLegacySpec("Power Consumption");
 
   // Dimensions & Weight
   const formattedDim = formatDimension(sInfo?.dimensions, unitSystem);
@@ -41,13 +43,12 @@ export function TVTemplate({ product, unitSystem }: TVTemplateProps) {
 
   const whatsInTheBox = sInfo?.whatsInTheBox || [
     `${product.title}`,
-    "Smart Remote Control with Batteries",
-    "Tabletop Stand Legs & Hardware",
-    "Power Cord",
-    "User Manual & Wall Mount Guide",
+    "Voice Remote Control & Batteries",
+    "Tabletop Stand & Hardware",
+    "Power Cord & Cable Management Clips",
   ];
 
-  const warranty = sInfo?.warranty || "3-Year Panel & Comprehensive TV Manufacturer Warranty";
+  const warranty = sInfo?.warranty || "2-Year Manufacturer In-Home Warranty";
 
   return (
     <div className="space-y-10 text-[#261816]">
@@ -57,9 +58,7 @@ export function TVTemplate({ product, unitSystem }: TVTemplateProps) {
           <h2 className="text-sm sm:text-base font-black text-[#8b0000] uppercase tracking-wider">
             PRODUCT OVERVIEW
           </h2>
-          <p className="text-xs sm:text-sm text-[#5a403c] leading-relaxed bg-[#faf8f8] p-4 rounded-2xl border border-[#e3beb8]/40">
-            {overview}
-          </p>
+          <DescriptionRenderer htmlContent={overview} />
         </section>
       )}
 

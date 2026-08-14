@@ -8,7 +8,7 @@ import { SmartwatchTemplate } from "./templates/smartwatch-template";
 import { CameraTemplate } from "./templates/camera-template";
 import { TVTemplate } from "./templates/tv-template";
 import { GenericTemplate } from "./templates/generic-template";
-import { FileText, Sparkles } from "lucide-react";
+import { FileText } from "lucide-react";
 
 interface ProductInformationProps {
   product: Product;

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, X, ArrowRight, Sparkles, Mic, History, TrendingUp, SlidersHorizontal } from "lucide-react";
+import { Search, X, ArrowRight, Mic, History, TrendingUp, SlidersHorizontal } from "lucide-react";
 import { DemoLink as Link } from "@/components/demo/demo-link";
 import { PRODUCTS } from "@/constants/products";
+import { Product } from "@/types/product";
 import { formatPrice } from "@/lib/utils";
 
 interface SearchModalProps {
@@ -15,18 +16,63 @@ interface SearchModalProps {
 export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const [searchResults, setSearchResults] = useState<Product[]>(PRODUCTS.slice(0, 4));
 
   const recentSearches = ["Titanium Pro", "M4 Laptop", "Spatial Audio", "4K OLED Monitor"];
   const trendingSearches = ["RTX 4090 Rigs", "8K Cinema Optics", "Apple Watch Ultra", "Thread Hub"];
 
-  const filteredProducts = query.trim() === ""
-    ? PRODUCTS.slice(0, 4)
-    : PRODUCTS.filter((p) =>
-        p.title.toLowerCase().includes(query.toLowerCase()) ||
-        p.brand.toLowerCase().includes(query.toLowerCase()) ||
-        p.categoryLabel.toLowerCase().includes(query.toLowerCase()) ||
-        p.description.toLowerCase().includes(query.toLowerCase())
-      );
+  useEffect(() => {
+    if (!isOpen) return;
+    let isMounted = true;
+
+    const handler = setTimeout(async () => {
+      if (query.trim() === "") {
+        try {
+          const res = await fetch("/api/products?per_page=4");
+          if (res.ok) {
+            const data = await res.json();
+            if (isMounted && data.success && Array.isArray(data.products) && data.products.length > 0) {
+              setSearchResults(data.products);
+              return;
+            }
+          }
+        } catch {
+          // fallback
+        }
+        if (isMounted) setSearchResults(PRODUCTS.slice(0, 4));
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/products?search=${encodeURIComponent(query.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.products) && data.products.length > 0) {
+            setSearchResults(data.products);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("[SearchModal] WooCommerce search fallback active:", err);
+      }
+
+      if (isMounted) {
+        setSearchResults(
+          PRODUCTS.filter((p) =>
+            p.title.toLowerCase().includes(query.toLowerCase()) ||
+            p.brand.toLowerCase().includes(query.toLowerCase()) ||
+            p.categoryLabel.toLowerCase().includes(query.toLowerCase()) ||
+            p.description.toLowerCase().includes(query.toLowerCase())
+          )
+        );
+      }
+    }, 250);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(handler);
+    };
+  }, [query, isOpen]);
 
   const handleVoiceSearch = () => {
     setIsListening(true);
@@ -123,16 +169,16 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             {/* Results List */}
             <div className="p-4 sm:p-6 max-h-[50vh] overflow-y-auto space-y-3">
               <div className="flex items-center justify-between text-xs font-bold text-[#8b0000] uppercase tracking-wider">
-                <span>{query.trim() === "" ? "Curated Marketplace Suggestions" : `Matching Results (${filteredProducts.length})`}</span>
+                <span>{query.trim() === "" ? "Curated Marketplace Suggestions" : `Matching Results (${searchResults.length})`}</span>
                 {query.trim() === "" && (
                   <span className="flex items-center gap-1 text-[#5a403c] font-normal lowercase text-xs">
-                    <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" /> Live hardware feed
+                    Live hardware feed
                   </span>
                 )}
               </div>
 
               <div className="space-y-2">
-                {filteredProducts.map((product) => (
+                {searchResults.map((product) => (
                   <Link
                     key={product.id}
                     href={`/products/${product.slug}`}
@@ -168,7 +214,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                   </Link>
                 ))}
 
-                {filteredProducts.length === 0 && (
+                {searchResults.length === 0 && (
                   <div className="text-center py-8 space-y-2">
                     <SlidersHorizontal className="w-8 h-8 text-[#8b0000] mx-auto opacity-40" />
                     <p className="text-xs text-[#5a403c]">

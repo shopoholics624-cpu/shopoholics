@@ -1,54 +1,54 @@
 "use client";
 
 import { DemoLink as Link } from "@/components/demo/demo-link";
-import { ArrowUpRight, DollarSign, Sparkles, Tag, Percent } from "lucide-react";
+import { ArrowUpRight, DollarSign, Zap, Tag, Percent } from "lucide-react";
 
 export function BudgetShowcase() {
   const budgetTiers = [
     {
       id: "b-1",
-      title: "Under $300",
+      title: "Under ₹25,000",
       subtitle: "Audio, Hubs & Accessories",
       count: "12 Items",
-      href: "/shop?maxPrice=300",
+      href: "/shop?maxPrice=25000",
       badge: "Value Entry",
       icon: Tag,
     },
     {
       id: "b-2",
-      title: "$300 – $600",
+      title: "₹25,000 – ₹50,000",
       subtitle: "ANC Buds, Smartwatches & Hubs",
       count: "18 Items",
-      href: "/shop?minPrice=300&maxPrice=600",
+      href: "/shop?minPrice=25000&maxPrice=50000",
       badge: "Popular Tier",
       icon: Percent,
     },
     {
       id: "b-3",
-      title: "$600 – $1,200",
+      title: "₹50,000 – ₹1,000,000",
       subtitle: "Flagship Phones & 4K Monitors",
       count: "25 Items",
-      href: "/shop?minPrice=600&maxPrice=1200",
+      href: "/shop?minPrice=50000&maxPrice=100000",
       badge: "Pro Tech",
-      icon: Sparkles,
+      icon: Zap,
     },
     {
       id: "b-4",
-      title: "$1,200 – $2,500",
+      title: "₹100,000 – ₹200,000",
       subtitle: "Ultra Laptops & 8K Cinema",
       count: "15 Items",
-      href: "/shop?minPrice=1200&maxPrice=2500",
+      href: "/shop?minPrice=100000&maxPrice=200000",
       badge: "Performance Tier",
       icon: DollarSign,
     },
     {
       id: "b-5",
-      title: "Above $2,500",
+      title: "Above ₹200,000",
       subtitle: "4090 Rigs & Medium Format",
       count: "10 Items",
-      href: "/shop?minPrice=2500",
+      href: "/shop?minPrice=200000",
       badge: "Luxury Edition",
-      icon: Sparkles,
+      icon: Zap,
     },
     {
       id: "b-6",

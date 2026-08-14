@@ -2,6 +2,7 @@
 
 import { useCart } from "@/hooks/use-cart";
 import { formatPrice } from "@/lib/utils";
+import { getFormattedItemAttributes, getColorHex } from "@/lib/attribute-utils";
 import { DemoLink as Link } from "@/components/demo/demo-link";
 import { FreeGiftBanner } from "@/components/cart/free-gift-banner";
 import {
@@ -11,11 +12,11 @@ import {
   Minus,
   ShieldCheck,
   ArrowRight,
-  Sparkles,
   ArrowLeft,
   Gift,
   CheckCircle2,
   Receipt,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function CartPage() {
@@ -25,14 +26,19 @@ export default function CartPage() {
     updateQuantity,
     toggleProtectionPlan,
     subtotal,
-    protectionSubtotal,
     tax,
     shippingCost,
+    discountTotal,
     total,
     itemCount,
     hasFreeGiftBundle,
     freeGiftCount,
+    updatingItemIds,
   } = useCart();
+
+  const hasUnavailableItems = items.some(
+    (item) => !item.isFreeGift && (item.unavailable || item.inStock === false || item.selectedVariant.inStock === false || item.selectedVariant.stockStatus === "outofstock")
+  );
 
   return (
     <div className="py-8 sm:py-12 bg-white min-h-screen">
@@ -54,6 +60,13 @@ export default function CartPage() {
 
         {/* Free Gift Unlocked Banner */}
         {hasFreeGiftBundle && <FreeGiftBanner giftCount={freeGiftCount} />}
+
+        {hasUnavailableItems && (
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 font-bold text-xs flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>Some items in your cart are currently unavailable. Please remove unavailable items to proceed to checkout.</span>
+          </div>
+        )}
 
         {items.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -98,13 +111,9 @@ export default function CartPage() {
 
                       <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto gap-2 pt-3 sm:pt-0 border-t sm:border-t-0 border-[#e3beb8]">
                         <div className="flex items-baseline gap-2">
-                          {item.freeGiftDetails?.giftOriginalPrice && (
-                            <span className="text-xs text-[#8e706b] line-through font-medium">
-                              {formatPrice(item.freeGiftDetails.giftOriginalPrice)}
-                            </span>
-                          )}
-                          <span className="font-black text-lg text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-lg">
-                            ₹0.00 FREE
+                          <span className="font-extrabold text-lg text-emerald-700">₹0.00 FREE</span>
+                          <span className="text-xs text-[#8e706b] line-through">
+                            {formatPrice(item.freeGiftDetails?.giftOriginalPrice || 1490)}
                           </span>
                         </div>
                         <span className="text-[10px] text-[#8e706b] font-bold">Auto-bundled item</span>
@@ -113,10 +122,18 @@ export default function CartPage() {
                   );
                 }
 
+                const isItemOutOfStock = item.unavailable || item.inStock === false || item.selectedVariant.inStock === false || item.selectedVariant.stockStatus === "outofstock";
+                const attributesList = getFormattedItemAttributes(
+                  item.selectedAttributes,
+                  item.selectedVariant
+                );
+
                 return (
                   <div
                     key={item.id}
-                    className="bg-white rounded-3xl p-6 border border-[#e3beb8]/60 shadow-lux flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
+                    className={`bg-white rounded-3xl p-6 border shadow-lux flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 ${
+                      isItemOutOfStock ? "border-amber-300 bg-amber-50/20" : "border-[#e3beb8]/60"
+                    }`}
                   >
                     <div className="flex items-center gap-4">
                       {/* eslint-disable-next-img-element */}
@@ -127,17 +144,47 @@ export default function CartPage() {
                       />
 
                       <div className="space-y-1">
-                        <span className="text-[10px] font-bold text-[#8b0000] uppercase tracking-wider">
-                          {item.product.categoryLabel}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-[#8b0000] uppercase tracking-wider">
+                            {item.product.categoryLabel}
+                          </span>
+                          {isItemOutOfStock && (
+                            <span className="text-[9px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                              {item.unavailable ? "Unavailable" : "Out of Stock"}
+                            </span>
+                          )}
+                        </div>
                         <h3 className="font-bold text-base text-[#261816]">
                           {item.product.title}
                         </h3>
-                        <p className="text-xs text-[#5a403c]">
-                          Finish: <span className="font-semibold">{item.selectedVariant.name}</span>
-                        </p>
 
-                        {/* Protection Plan Checkbox */}
+                        {/* Clean Dynamic WooCommerce Attributes */}
+                        {attributesList.length > 0 ? (
+                          <div className="space-y-1 text-xs text-[#5a403c]">
+                            {attributesList.map((attr) => (
+                              <div key={attr.label} className="flex items-center gap-2">
+                                <span className="text-[#8e706b] font-medium min-w-[56px]">
+                                  {attr.label}:
+                                </span>
+                                <span className="font-semibold text-[#261816] flex items-center gap-1.5">
+                                  {attr.label === "Colour" && (
+                                    <span
+                                      className="w-2.5 h-2.5 rounded-full border border-black/20 shrink-0 inline-block"
+                                      style={{ backgroundColor: getColorHex(attr.value) }}
+                                    />
+                                  )}
+                                  {attr.value}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-[#5a403c]">
+                            Option: <span className="font-semibold">{item.selectedVariant.name}</span>
+                          </p>
+                        )}
+
+                        {/* Protection Plan Checkbox UI (Visual State) */}
                         <button
                           onClick={() => toggleProtectionPlan(item.id)}
                           className={`flex items-center gap-2 mt-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
@@ -148,7 +195,7 @@ export default function CartPage() {
                         >
                           <ShieldCheck className="w-4 h-4 text-[#e51c10]" />
                           <span>
-                            {item.hasProtectionPlan ? "2-Year VIP Protection Active (+$99)" : "Add 2-Year VIP Protection (+$99)"}
+                            {item.hasProtectionPlan ? "2-Year VIP Protection Active" : "Add 2-Year VIP Protection"}
                           </span>
                         </button>
                       </div>
@@ -164,17 +211,19 @@ export default function CartPage() {
                         <div className="flex items-center border border-[#e3beb8] rounded-xl bg-[#fff8f6] p-1">
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                            className="p-1 text-[#5a403c] hover:text-[#8b0000] rounded-lg hover:bg-white"
+                            disabled={Boolean(updatingItemIds?.[item.id]) || item.quantity <= 1}
+                            className="p-1 text-[#5a403c] hover:text-[#8b0000] rounded-lg hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                             aria-label="Decrease quantity"
                           >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
                           <span className="px-3 text-xs font-bold text-[#261816]">
-                            {item.quantity}
+                            {updatingItemIds?.[item.id] ? "..." : item.quantity}
                           </span>
                           <button
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            className="p-1 text-[#5a403c] hover:text-[#8b0000] rounded-lg hover:bg-white"
+                            disabled={Boolean(updatingItemIds?.[item.id])}
+                            className="p-1 text-[#5a403c] hover:text-[#8b0000] rounded-lg hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                             aria-label="Increase quantity"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -195,86 +244,78 @@ export default function CartPage() {
               })}
             </div>
 
-            {/* Order Summary Sidebar */}
-            <div className="lg:col-span-4 bg-white rounded-3xl p-6 border border-[#e3beb8]/60 shadow-lux space-y-6 sticky top-28">
-              <h3 className="text-lg font-extrabold text-[#261816] flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#8b0000]" /> Order Summary
-              </h3>
+            {/* Order Summary Side Card */}
+            <div className="lg:col-span-4 bg-white rounded-3xl p-6 border border-[#e3beb8]/80 shadow-lux space-y-6 sticky top-28">
+              <h2 className="text-lg font-bold text-[#261816] flex items-center gap-2 border-b border-[#ffe9e6] pb-4">
+                <Receipt className="w-5 h-5 text-[#8b0000]" />
+                Order Summary
+              </h2>
 
-              <div className="space-y-3 text-xs text-[#5a403c] pb-4 border-b border-[#ffe9e6]">
-                <div className="flex justify-between">
-                  <span>Hardware Subtotal</span>
-                  <span className="font-bold text-[#261816]">{formatPrice(subtotal)}</span>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between text-[#5a403c]">
+                  <span>Subtotal</span>
+                  <span className="font-extrabold text-[#261816]">{formatPrice(subtotal)}</span>
                 </div>
 
-                {protectionSubtotal > 0 && (
-                  <div className="flex justify-between">
-                    <span>VIP Coverage Add-ons</span>
-                    <span className="font-bold text-[#261816]">{formatPrice(protectionSubtotal)}</span>
+                {discountTotal > 0 && (
+                  <div className="flex justify-between text-emerald-700 font-bold">
+                    <span>Bundle Discount</span>
+                    <span>-{formatPrice(discountTotal)}</span>
                   </div>
                 )}
 
-                {hasFreeGiftBundle && (
-                  <div className="flex justify-between items-center text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200">
-                    <span className="flex items-center gap-1">
-                      <Gift className="w-3.5 h-3.5 text-emerald-600" /> Complimentary Gift Bundle
-                    </span>
-                    <span>₹0.00 FREE</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between">
-                  <span>Estimated State Tax (8%)</span>
-                  <span className="font-bold text-[#261816]">{formatPrice(tax)}</span>
+                <div className="flex justify-between text-[#5a403c]">
+                  <span>Estimated Tax (GST 18%)</span>
+                  <span className="font-bold text-[#261816]">
+                    {tax > 0 ? formatPrice(tax) : "Calculated at Checkout"}
+                  </span>
                 </div>
 
-                <div className="flex justify-between">
-                  <span>Express Courier Delivery</span>
+                <div className="flex justify-between text-[#5a403c]">
+                  <span>Express Shipping</span>
                   <span className="font-bold text-emerald-700">
                     {shippingCost === 0 ? "FREE" : formatPrice(shippingCost)}
                   </span>
                 </div>
-              </div>
 
-              <div className="flex justify-between items-baseline pt-2">
-                <span className="text-sm font-bold text-[#261816]">Order Total</span>
-                <span className="text-2xl font-extrabold text-[#8b0000]">
-                  {formatPrice(total)}
-                </span>
-              </div>
-
-              {/* GST Invoice Callout */}
-              <div className="p-3 rounded-2xl bg-[#fff8f6] border border-[#e3beb8]/60 flex items-center justify-between gap-2 text-xs">
-                <div className="flex items-center gap-2 text-[#5a403c]">
-                  <Receipt className="w-4 h-4 text-[#8b0000] shrink-0" />
-                  <span>Need a <strong>GST Invoice</strong> for Tax Credit?</span>
+                <div className="border-t border-[#ffe9e6] pt-3 flex justify-between items-baseline">
+                  <span className="font-extrabold text-[#261816]">Estimated Total</span>
+                  <span className="font-extrabold text-2xl text-[#8b0000]">{formatPrice(total)}</span>
                 </div>
-                <span className="text-[10px] font-bold text-[#8b0000] bg-[#ffe9e6] px-2 py-0.5 rounded-full shrink-0">
-                  Available
-                </span>
               </div>
 
-              <Link
-                href="/checkout/shipping"
-                className="w-full py-4 rounded-xl bg-[#8b0000] hover:bg-[#bc0000] text-white font-bold text-sm transition-all shadow-xl hover:shadow-2xl flex items-center justify-center gap-2 active:scale-95"
-              >
-                <span>Proceed to Shipping</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+              {hasUnavailableItems ? (
+                <button
+                  disabled
+                  className="w-full py-4 bg-gray-300 text-gray-500 font-extrabold text-sm rounded-2xl cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <span>Remove Unavailable Items</span>
+                </button>
+              ) : (
+                <Link
+                  href="/checkout/shipping"
+                  className="w-full py-4 bg-[#8b0000] text-white font-extrabold text-sm rounded-2xl hover:bg-[#6b0000] transition-colors flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                >
+                  <span>Proceed to Express Checkout</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              )}
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-3xl p-12 text-center border border-[#e3beb8] shadow-lux space-y-4">
-            <ShoppingBag className="w-12 h-12 text-[#8b0000] mx-auto opacity-40" />
-            <h3 className="text-2xl font-bold text-[#261816]">Your Bag is Empty</h3>
-            <p className="text-sm text-[#5a403c] max-w-md mx-auto">
-              Discover titanium smart devices and high-resolution audio systems in our store.
+          <div className="py-20 text-center space-y-4 max-w-md mx-auto">
+            <div className="w-16 h-16 rounded-full bg-[#ffe9e6] text-[#8b0000] mx-auto flex items-center justify-center shadow-inner">
+              <ShoppingBag className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-[#261816]">Your cart is currently empty</h2>
+            <p className="text-xs text-[#5a403c]">
+              Explore our luxury tech store for flagship smartphones, laptops, audio, and accessories.
             </p>
             <Link
               href="/shop"
-              className="inline-block px-6 py-3 bg-[#8b0000] text-white font-bold text-xs rounded-xl hover:bg-[#bc0000] transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#8b0000] text-white font-bold text-xs rounded-xl shadow-md hover:bg-[#6b0000] transition-all"
             >
-              Start Shopping Now
+              Start Shopping <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
         )}

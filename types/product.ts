@@ -1,13 +1,22 @@
+export interface ProductAttributeGroup {
+  name: string;
+  options: string[];
+}
+
 export interface ProductVariant {
   id: string;
+  wooVariationId?: number;
+  sku?: string;
   name: string;
   colorName: string;
   colorHex: string;
   storage?: string;
+  attributes?: Record<string, string>;
   price: number;
   originalPrice?: number;
   image: string;
   inStock: boolean;
+  stockStatus?: "instock" | "outofstock" | "onbackorder";
 }
 
 export interface ProductSpec {
@@ -132,13 +141,26 @@ export interface ProductStructuredInfo {
   };
 }
 
+export interface ProductCategoryMeta {
+  id: number;
+  name: string;
+  slug: string;
+  parent?: number;
+}
+
 export interface Product {
   id: string;
   slug: string;
   title: string;
+  type?: "simple" | "variable" | "grouped" | "external";
+  hasVariations?: boolean;
   tagline: string;
   brand: string;
   category: CategoryType;
+  categorySlugs?: string[];
+  categoryIds?: number[];
+  categories?: ProductCategoryMeta[];
+  primaryCategory?: ProductCategoryMeta;
   categoryLabel: string;
   lifestyle?: LifestyleType[];
   price: number;
@@ -151,6 +173,7 @@ export interface Product {
   description: string;
   features: string[];
   variants: ProductVariant[];
+  attributeGroups?: ProductAttributeGroup[];
   specs: ProductSpec[];
   structuredInfo?: ProductStructuredInfo;
   isFeatured?: boolean;
@@ -162,6 +185,9 @@ export interface Product {
   freeDelivery?: boolean;
   expressDelivery?: boolean;
   freeGiftBundle?: FreeGiftBundle;
+  sku?: string;
+  inStock?: boolean;
+  stockStatus?: "instock" | "outofstock" | "onbackorder";
 }
 
 export interface CategoryFilter {

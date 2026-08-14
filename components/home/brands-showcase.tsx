@@ -1,27 +1,45 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { DemoLink as Link } from "@/components/demo/demo-link";
-import { ArrowUpRight, Award } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import { WooBrand } from "@/types/woocommerce";
 
 export function BrandsShowcase() {
-  const brands = [
-    { name: "Apple", tagline: "iPhone, Mac & Watch", href: "/shop?brand=Apple", logo: "🍎" },
-    { name: "Samsung", tagline: "Galaxy & QLED TVs", href: "/shop?brand=Samsung", logo: "🌌" },
-    { name: "Sony", tagline: "PlayStation & Alpha Optics", href: "/shop?brand=Sony", logo: "🎮" },
-    { name: "ASUS", tagline: "ROG Gaming & ZenBooks", href: "/shop?brand=ASUS", logo: "⚡" },
-    { name: "Canon", tagline: "EOS Cinema Optics", href: "/shop?brand=Canon", logo: "📸" },
-    { name: "Dell", tagline: "XPS & Alienware Rigs", href: "/shop?brand=Dell", logo: "💻" },
-    { name: "Logitech", tagline: "MX Master & G PRO", href: "/shop?brand=Logitech", logo: "🖱️" },
-    { name: "Razer", tagline: "Chroma RGB & Blade", href: "/shop?brand=Razer", logo: "🐍" },
-    { name: "DJI", tagline: "Mavic Drones & Osmo", href: "/shop?brand=DJI", logo: "🚁" },
-    { name: "JBL", tagline: "Authentics & Soundbars", href: "/shop?brand=JBL", logo: "🔊" },
-    { name: "Marshall", tagline: "Stanmore Acoustics", href: "/shop?brand=Marshall", logo: "🎸" },
-    { name: "GoPro", tagline: "HERO Action Cameras", href: "/shop?brand=GoPro", logo: "📹" },
-  ];
+  const [brands, setBrands] = useState<{ name: string; tagline: string; href: string; logo?: string }[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchBrands() {
+      try {
+        const res = await fetch("/api/brands");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.brands) && data.brands.length > 0) {
+            const mapped = data.brands.map((b: WooBrand) => ({
+              name: b.name,
+              tagline: b.description ? b.description.slice(0, 40) : "Official Manufacturer Hardware",
+              href: `/shop?brand=${encodeURIComponent(b.slug)}`,
+              logo: b.image?.src || `https://cdn.simpleicons.org/${b.slug}/000000`,
+            }));
+            setBrands(mapped);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("[BrandsShowcase] WooCommerce fetch fallback:", err);
+      }
+    }
+
+    fetchBrands();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
-    <section className="py-10 sm:py-16 lg:py-20 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <section className="py-4 sm:py-6 lg:py-8 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Section Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e3beb8]/40 pb-5">
           <div>
@@ -43,20 +61,26 @@ export function BrandsShowcase() {
         </div>
 
         {/* Brand Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {brands.map((b) => (
             <Link
               key={b.name}
               href={b.href}
-              className="group relative z-0 hover:z-20 bg-[#F1F0EC] hover:bg-[#E6E5DF] rounded-2xl p-3.5 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center space-y-1"
+              className="group relative z-0 hover:z-20 bg-[#F8F8F6] hover:bg-white rounded-2xl p-4 border border-[#E5E4DF] shadow-sm hover:shadow-xl hover:border-[#8b0000]/40 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center text-center"
             >
-              <span className="text-2xl group-hover:scale-110 transition-transform duration-300">
-                {b.logo}
-              </span>
+              <div className="w-full h-10 flex items-center justify-center mb-2">
+                <img
+                  src={b.logo}
+                  alt={`${b.name} official logo`}
+                  className="max-h-7 max-w-[85%] object-contain group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
+                />
+              </div>
+
               <h3 className="font-extrabold text-xs text-[#1C1C1A] group-hover:text-[#8b0000] transition-colors">
                 {b.name}
               </h3>
-              <p className="text-[10px] text-[#5A5954] line-clamp-1 font-medium">
+              <p className="text-[10px] text-[#5A5954] line-clamp-1 font-medium mt-0.5">
                 {b.tagline}
               </p>
             </Link>

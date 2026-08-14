@@ -17,7 +17,19 @@ export default function CheckoutLayout({ children }: { children: React.ReactNode
 
   return (
     <div className="py-8 bg-white min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        {/* Checkout Header Logo */}
+        <div className="text-center">
+          <Link href="/" className="inline-block">
+            {/* eslint-disable-next-img-element */}
+            <img
+              src="/images/logo-cropped.png"
+              alt="Shop-O-Holics - Spend Less, Save More... Shop Smart!!!"
+              className="h-8 sm:h-10 max-w-[180px] sm:max-w-[220px] w-auto object-contain mx-auto transition-transform hover:scale-105"
+            />
+          </Link>
+        </div>
+
         {/* Stepper Progress Indicator */}
         <div className="bg-white rounded-3xl p-6 border border-[#e3beb8]/60 shadow-lux">
           <div className="flex items-center justify-between relative">

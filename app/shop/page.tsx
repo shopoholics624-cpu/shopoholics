@@ -3,10 +3,13 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { PRODUCTS } from "@/constants/products";
+import { Product } from "@/types/product";
 import { FilterSidebar } from "@/components/shop/filter-sidebar";
 import { ProductCard } from "@/components/common/product-card";
-import { SlidersHorizontal, Search } from "lucide-react";
+import { SlidersHorizontal, Search, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+import { Breadcrumbs } from "@/components/common/breadcrumbs";
 
 function ShopContent() {
   const searchParams = useSearchParams();
@@ -15,7 +18,7 @@ function ShopContent() {
   const brandParam = searchParams.get("brand") || "all";
   const lifestyleParam = searchParams.get("lifestyle") || "all";
   const minPriceParam = Number(searchParams.get("minPrice")) || 0;
-  const maxPriceParam = Number(searchParams.get("maxPrice")) || 4000;
+  const maxPriceParam = Number(searchParams.get("maxPrice")) || 500000;
   const dealParam = searchParams.get("isDeal") === "true";
 
   const [selectedCategory, setSelectedCategory] = useState(categoryParam);
@@ -27,6 +30,13 @@ function ShopContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
+  // WooCommerce Integration State
+  const [allProducts, setAllProducts] = useState<Product[]>(PRODUCTS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isWooLive, setIsWooLive] = useState(false);
+  const [wooCategoryMap, setWooCategoryMap] = useState<Record<string, string>>({});
+  const [wooBrandMap, setWooBrandMap] = useState<Record<string, string>>({});
+
   useEffect(() => {
     if (categoryParam) setSelectedCategory(categoryParam);
     if (brandParam) setSelectedBrand(brandParam);
@@ -34,12 +44,104 @@ function ShopContent() {
     if (maxPriceParam) setPriceRange(maxPriceParam);
   }, [categoryParam, brandParam, lifestyleParam, maxPriceParam]);
 
-  const filteredProducts = PRODUCTS.filter((product) => {
-    if (selectedCategory !== "all" && product.category !== selectedCategory) {
-      return false;
+  useEffect(() => {
+    async function fetchMeta() {
+      try {
+        const [catRes, brandRes] = await Promise.all([fetch("/api/categories"), fetch("/api/brands")]);
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          if (catData.success && Array.isArray(catData.categories)) {
+            const map: Record<string, string> = {};
+            catData.categories.forEach((c: { slug: string; name: string }) => {
+              map[c.slug.toLowerCase()] = c.name;
+            });
+            setWooCategoryMap(map);
+          }
+        }
+        if (brandRes.ok) {
+          const brandData = await brandRes.json();
+          if (brandData.success && Array.isArray(brandData.brands)) {
+            const map: Record<string, string> = {};
+            brandData.brands.forEach((b: { slug: string; name: string }) => {
+              map[b.slug.toLowerCase()] = b.name;
+            });
+            setWooBrandMap(map);
+          }
+        }
+      } catch (e) {
+        console.warn("[Shop] Meta fetch error:", e);
+      }
     }
-    if (selectedBrand !== "all" && product.brand.toLowerCase() !== selectedBrand.toLowerCase()) {
-      return false;
+    fetchMeta();
+  }, []);
+
+  const filterQueryKey = `${selectedCategory}:${selectedBrand}:${searchQuery.trim()}:${sortBy}`;
+
+  // Fetch products from Next.js WooCommerce Server API Route
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchProducts() {
+      setIsLoading(true);
+      try {
+        const query = new URLSearchParams();
+        if (selectedCategory !== "all") query.append("category", selectedCategory);
+        if (selectedBrand !== "all") query.append("brand", selectedBrand);
+        if (searchQuery.trim()) query.append("search", searchQuery.trim());
+        if (sortBy === "price-low") {
+          query.append("orderby", "price");
+          query.append("order", "asc");
+        } else if (sortBy === "price-high") {
+          query.append("orderby", "price");
+          query.append("order", "desc");
+        } else if (sortBy === "rating") {
+          query.append("orderby", "rating");
+          query.append("order", "desc");
+        }
+
+        const res = await fetch(`/api/products?${query.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.products) && data.products.length > 0) {
+            setAllProducts(data.products);
+            setIsWooLive(true);
+            setIsLoading(false);
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn("[Shop] WooCommerce fetch fallback active:", error);
+      }
+
+      if (isMounted) {
+        setAllProducts(PRODUCTS);
+        setIsWooLive(false);
+        setIsLoading(false);
+      }
+    }
+
+    fetchProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, [filterQueryKey]);
+
+  const filteredProducts = allProducts.filter((product) => {
+    if (selectedCategory !== "all") {
+      const lowerCat = selectedCategory.toLowerCase().trim();
+      const matchCategory =
+        product.category.toLowerCase() === lowerCat ||
+        product.categorySlugs?.some((s) => s.toLowerCase() === lowerCat) ||
+        product.categoryIds?.some((id) => String(id) === lowerCat) ||
+        (lowerCat === "smartphones" && product.categorySlugs?.some((s) => s.includes("phone"))) ||
+        (lowerCat === "laptops" && product.categorySlugs?.some((s) => s.includes("laptop"))) ||
+        isWooLive;
+
+      if (!matchCategory) return false;
+    }
+    if (selectedBrand !== "all" && !isWooLive) {
+      if (product.brand.toLowerCase() !== selectedBrand.toLowerCase()) {
+        return false;
+      }
     }
     if (
       selectedLifestyle !== "all" &&
@@ -51,6 +153,9 @@ function ShopContent() {
       return false;
     }
     if (dealParam && !product.isDeal && !product.discountPercentage) {
+      return false;
+    }
+    if (inStockOnly && product.variants?.some((v) => v.inStock === false)) {
       return false;
     }
     if (searchQuery.trim() !== "") {
@@ -74,15 +179,38 @@ function ShopContent() {
     setSelectedCategory("all");
     setSelectedBrand("all");
     setSelectedLifestyle("all");
-    setPriceRange(4000);
-    setInStockOnly(false);
-    setSearchQuery("");
+    setPriceRange(500000);
     setSortBy("featured");
   };
 
+  const activeCategoryName =
+    selectedCategory !== "all"
+      ? wooCategoryMap[selectedCategory.toLowerCase()] ||
+        selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)
+      : undefined;
+
+  const activeBrandName =
+    selectedBrand !== "all"
+      ? wooBrandMap[selectedBrand.toLowerCase()] ||
+        selectedBrand.charAt(0).toUpperCase() + selectedBrand.slice(1)
+      : undefined;
+
+  const breadcrumbItems = [
+    { label: "Shop", href: "/shop" },
+    ...(activeCategoryName
+      ? [{ label: activeCategoryName, href: `/shop?category=${encodeURIComponent(selectedCategory)}` }]
+      : [{ label: "All Products", href: "/shop" }]),
+    ...(activeBrandName
+      ? [{ label: activeBrandName, href: `/shop?category=${encodeURIComponent(selectedCategory)}&brand=${encodeURIComponent(selectedBrand)}` }]
+      : []),
+  ];
+
   return (
-    <div className="py-6 sm:py-10 bg-white min-h-screen">
+    <div className="pt-4 sm:pt-6 pb-6 sm:pb-10 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        {/* Dynamic WooCommerce Category / Brand Breadcrumb */}
+        <Breadcrumbs items={breadcrumbItems} />
+
         {/* Toolbar & Grid layout */}
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
           {/* Desktop Filter Sidebar */}
@@ -102,62 +230,90 @@ function ShopContent() {
             />
           </div>
 
-          {/* Catalog Content Area */}
-          <div className="flex-1 w-full space-y-5">
-            {/* Top Controls Bar */}
-            <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-[#e3beb8]/60 shadow-lux flex flex-wrap items-center justify-between gap-3">
-              <button
-                onClick={() => setIsMobileFilterOpen(true)}
-                className="lg:hidden flex items-center gap-2 px-3.5 py-2 bg-[#8b0000] text-white font-bold text-xs rounded-xl shadow-sm active:scale-95 transition-all min-h-[40px]"
-              >
-                <SlidersHorizontal className="w-4 h-4" />
-                <span>Filters</span>
-              </button>
-
-              <div className="relative flex-1 min-w-[180px]">
-                <Search className="w-4 h-4 text-[#8e706b] absolute left-3.5 top-3" />
+          {/* Main Catalog Area */}
+          <div className="flex-1 w-full space-y-6">
+            {/* Top Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#fff8f6] p-4 rounded-2xl border border-[#ffe9e6]">
+              {/* Search Bar */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 text-[#8b0000] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Filter by name, brand, specs..."
+                  placeholder="Filter by keyword, title, brand..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[#fff8f6] rounded-xl text-xs font-medium text-[#261816] placeholder:text-[#8e706b] border border-[#e3beb8]/40 focus:outline-none focus:border-[#8b0000] min-h-[40px]"
+                  className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-white border border-[#e3beb8] rounded-xl outline-none focus:border-[#8b0000] transition-colors"
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-[#5a403c] hidden sm:inline">Sort:</span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-2 bg-[#fff8f6] text-xs font-semibold text-[#261816] rounded-xl border border-[#e3beb8]/60 outline-none cursor-pointer min-h-[40px]"
+              <div className="flex items-center justify-between sm:justify-end gap-3">
+                {/* Mobile Filter Button */}
+                <button
+                  onClick={() => setIsMobileFilterOpen(true)}
+                  className="lg:hidden inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-[#e3beb8] rounded-xl text-xs font-bold text-[#261816] shadow-sm active:scale-95 transition-all"
                 >
-                  <option value="featured">Featured First</option>
-                  <option value="popular">Popularity & Ratings</option>
-                  <option value="price-low">Price: Low to High</option>
-                  <option value="price-high">Price: High to Low</option>
-                  <option value="discount">Biggest Discount %</option>
-                </select>
+                  <SlidersHorizontal className="w-4 h-4 text-[#8b0000]" />
+                  <span>Filters</span>
+                </button>
+
+                {/* Sorting Select */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-[#5a403c] hidden sm:inline">Sort:</span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="px-3 py-2 text-xs sm:text-sm font-bold bg-white border border-[#e3beb8] rounded-xl outline-none focus:border-[#8b0000] text-[#261816] cursor-pointer"
+                  >
+                    <option value="featured">Featured Hardware</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Customer Rating</option>
+                    <option value="popular">Most Popular</option>
+                    <option value="discount">Biggest Savings %</option>
+                  </select>
+                </div>
               </div>
             </div>
 
-            {/* Results Grid */}
-            {filteredProducts.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+            {/* Results Counter & Live Data Status Indicator */}
+            <div className="flex items-center justify-between text-xs text-[#5a403c] px-1 font-medium">
+              <span>
+                Showing <strong className="text-[#261816] font-extrabold">{filteredProducts.length}</strong> Devices
+              </span>
+              {isWooLive && (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live WooCommerce Data
+                </span>
+              )}
+            </div>
+
+            {/* Product Grid / Loading / Empty State */}
+            {isLoading ? (
+              <div className="py-20 flex flex-col items-center justify-center space-y-3">
+                <Loader2 className="w-8 h-8 text-[#8b0000] animate-spin" />
+                <p className="text-xs text-[#5a403c] font-medium">Syncing product catalog...</p>
+              </div>
+            ) : filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredProducts.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             ) : (
-              <div className="bg-white rounded-3xl p-10 text-center border border-[#e3beb8] shadow-lux space-y-4">
-                <SlidersHorizontal className="w-10 h-10 text-[#8b0000] mx-auto opacity-40" />
-                <h3 className="text-lg font-bold text-[#261816]">No Devices Found</h3>
-                <p className="text-xs text-[#5a403c] max-w-md mx-auto">
-                  No products matched your specified brand, category, lifestyle, or price criteria. Try resetting your filters.
-                </p>
+              <div className="bg-white rounded-3xl p-12 text-center border border-[#e3beb8] space-y-4">
+                <div className="w-12 h-12 rounded-full bg-[#ffe9e6] flex items-center justify-center mx-auto text-[#8b0000]">
+                  <Search className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base text-[#261816]">No matching products found</h3>
+                  <p className="text-xs text-[#5a403c] mt-1 max-w-sm mx-auto">
+                    Try relaxing your price range filter, selecting a different category, or resetting all filters.
+                  </p>
+                </div>
                 <button
                   onClick={resetFilters}
-                  className="px-5 py-2.5 bg-[#8b0000] text-white rounded-xl font-semibold text-xs hover:bg-[#bc0000] transition-colors min-h-[40px]"
+                  className="px-5 py-2.5 bg-[#8b0000] text-white text-xs font-bold rounded-xl shadow-sm hover:bg-[#bc0000] transition-colors"
                 >
                   Reset All Filters
                 </button>
@@ -167,23 +323,23 @@ function ShopContent() {
         </div>
       </div>
 
-      {/* Mobile Slide-Up Filter Drawer */}
+      {/* Mobile Drawer Filter */}
       <AnimatePresence>
         {isMobileFilterOpen && (
-          <div className="fixed inset-0 z-50 lg:hidden flex items-end">
+          <div className="fixed inset-0 z-50 lg:hidden flex justify-end">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileFilterOpen(false)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
             />
             <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className="relative w-full max-h-[85vh] overflow-y-auto bg-white rounded-t-[32px] p-4 shadow-2xl z-10"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="relative w-full max-w-xs h-full bg-white p-5 text-[#261816] flex flex-col justify-between z-10 overflow-y-auto"
             >
               <FilterSidebar
                 selectedCategory={selectedCategory}
@@ -209,7 +365,14 @@ function ShopContent() {
 
 export default function ShopPage() {
   return (
-    <Suspense fallback={<div className="py-20 text-center text-xs font-bold text-[#8b0000]">Loading Catalog...</div>}>
+    <Suspense
+      fallback={
+        <div className="py-20 flex flex-col items-center justify-center space-y-3 bg-white min-h-screen">
+          <Loader2 className="w-8 h-8 text-[#8b0000] animate-spin" />
+          <p className="text-xs text-[#5a403c] font-medium">Loading catalog...</p>
+        </div>
+      }
+    >
       <ShopContent />
     </Suspense>
   );

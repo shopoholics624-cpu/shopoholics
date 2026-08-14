@@ -4,6 +4,7 @@ import { Product } from "@/types/product";
 import { UnitSystem, formatDimension, convertMeasurement, isValidValue } from "@/lib/unit-converter";
 import { SpecRow, SpecSectionHeader } from "../spec-row";
 import { Package, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { DescriptionRenderer } from "../description-renderer";
 
 interface HeadphoneTemplateProps {
   product: Product;
@@ -19,15 +20,15 @@ export function HeadphoneTemplate({ product, unitSystem }: HeadphoneTemplateProp
     return found ? found.value : null;
   };
 
-  const overview = sInfo?.overview || product.description;
+  const overview = (product.description && product.description.trim()) || (sInfo?.overview && sInfo.overview.trim()) || "No product description available.";
   const keyFeatures = sInfo?.keyFeatures || product.features;
 
-  const driverSize = s.driverSize || getLegacySpec("Driver Size") || getLegacySpec("Drivers");
-  const soundProfile = s.soundProfile || getLegacySpec("Sound Profile") || getLegacySpec("Audio");
-  const noiseCancellation = s.noiseCancellation || getLegacySpec("Noise Cancellation") || getLegacySpec("ANC");
-  const microphones = s.microphones || getLegacySpec("Microphones") || getLegacySpec("Mic");
-  const bluetoothVersion = s.bluetoothVersion || getLegacySpec("Bluetooth Version") || getLegacySpec("Connectivity");
-  const batteryLife = s.batteryLife || getLegacySpec("Battery Life") || getLegacySpec("Battery");
+  const driverSize = s.driverSize || getLegacySpec("Driver Size") || getLegacySpec("Driver");
+  const soundProfile = s.soundProfile || getLegacySpec("Frequency Response") || getLegacySpec("Sound Profile");
+  const noiseCancellation = s.noiseCancellation || getLegacySpec("Active Noise Cancellation") || getLegacySpec("ANC");
+  const microphones = s.microphones || getLegacySpec("Microphones");
+  const bluetoothVersion = s.bluetoothVersion || getLegacySpec("Bluetooth") || getLegacySpec("Wireless");
+  const batteryLife = s.batteryLife || getLegacySpec("Battery Life") || getLegacySpec("Playtime");
   const chargingSpeed = s.chargingSpeed || getLegacySpec("Charging");
   const controls = s.controls || getLegacySpec("Controls");
   const waterResistance = s.waterResistance || getLegacySpec("Water Resistance") || getLegacySpec("IP Rating");
@@ -41,13 +42,12 @@ export function HeadphoneTemplate({ product, unitSystem }: HeadphoneTemplateProp
 
   const whatsInTheBox = sInfo?.whatsInTheBox || [
     `${product.title}`,
-    "Smart Charging Case",
-    "Silicone Ear Tips (S, M, L)",
-    "USB-C Braided Charging Cable",
-    "User Manual",
+    "Braided Audio Cable (3.5mm)",
+    "USB-C Charging Cable",
+    "Hard Case & Travel Pouch",
   ];
 
-  const warranty = sInfo?.warranty || "2-Year Official Audio Manufacturer Warranty";
+  const warranty = sInfo?.warranty || "2-Year Manufacturer Warranty + Concierge Replacement";
 
   return (
     <div className="space-y-10 text-[#261816]">
@@ -57,9 +57,7 @@ export function HeadphoneTemplate({ product, unitSystem }: HeadphoneTemplateProp
           <h2 className="text-sm sm:text-base font-black text-[#8b0000] uppercase tracking-wider">
             PRODUCT OVERVIEW
           </h2>
-          <p className="text-xs sm:text-sm text-[#5a403c] leading-relaxed bg-[#faf8f8] p-4 rounded-2xl border border-[#e3beb8]/40">
-            {overview}
-          </p>
+          <DescriptionRenderer htmlContent={overview} />
         </section>
       )}
 

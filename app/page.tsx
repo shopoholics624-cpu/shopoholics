@@ -1,16 +1,43 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { HeroShowcase } from "@/components/home/hero-showcase";
 import { OurProductsSlider } from "@/components/home/our-products-slider";
 import { BrandsShowcase } from "@/components/home/brands-showcase";
 import { BentoShowcase } from "@/components/home/bento-showcase";
 import { PromoDealsShowcase } from "@/components/home/promo-deals-showcase";
 import { ProductGrid } from "@/components/common/product-grid";
+import { Product } from "@/types/product";
 import { PRODUCTS } from "@/constants/products";
 import { DemoLink as Link } from "@/components/demo/demo-link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export default function HomePage() {
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchHomeProducts() {
+      try {
+        const res = await fetch("/api/products?per_page=12");
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.products) && data.products.length > 0) {
+            setProducts(data.products);
+          }
+        }
+      } catch (err) {
+        console.warn("[HomePage] WooCommerce fetch fallback active:", err);
+      }
+    }
+    fetchHomeProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
-    <div className="space-y-4 sm:space-y-6 pb-12 bg-white">
+    <div className="space-y-0 pb-8 bg-white">
       {/* 1. Hero Section */}
       <HeroShowcase />
 
@@ -27,8 +54,8 @@ export default function HomePage() {
       <PromoDealsShowcase />
 
       {/* 6. Flagship Devices & Audio */}
-      <section className="py-10 sm:py-16 lg:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <section className="py-4 sm:py-6 lg:py-8 bg-white">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D4D3CD]/60 pb-5">
             <div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1C1C1A] tracking-tight">
@@ -49,7 +76,7 @@ export default function HomePage() {
           </div>
 
           {/* Product Grid (2x2 on Mobile Responsive) */}
-          <ProductGrid products={PRODUCTS} />
+          <ProductGrid products={products} />
         </div>
       </section>
     </div>

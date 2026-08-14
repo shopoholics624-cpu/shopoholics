@@ -4,6 +4,7 @@ import { Product } from "@/types/product";
 import { UnitSystem, formatDimension, convertMeasurement, isValidValue } from "@/lib/unit-converter";
 import { SpecRow, SpecSectionHeader } from "../spec-row";
 import { Package, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { DescriptionRenderer } from "../description-renderer";
 
 interface CameraTemplateProps {
   product: Product;
@@ -19,20 +20,22 @@ export function CameraTemplate({ product, unitSystem }: CameraTemplateProps) {
     return found ? found.value : null;
   };
 
-  const overview = sInfo?.overview || product.description;
+  const overview = (product.description && product.description.trim()) || (sInfo?.overview && sInfo.overview.trim()) || "No product description available.";
   const keyFeatures = sInfo?.keyFeatures || product.features;
 
-  const sensorType = s.sensorType || getLegacySpec("Sensor") || getLegacySpec("Sensor Type");
+  const sensorType = s.sensorType || getLegacySpec("Sensor Type") || getLegacySpec("Sensor");
   const displayResolution = s.displayResolution || getLegacySpec("Resolution") || getLegacySpec("Megapixels");
-  const lensMount = s.lensMount || getLegacySpec("Lens / Mount") || getLegacySpec("Lens");
-  const isoRange = s.isoRange || getLegacySpec("ISO Range") || getLegacySpec("ISO");
+  const processor = s.processor || getLegacySpec("Image Processor") || getLegacySpec("Processor");
+  const lensMount = s.lensMount || getLegacySpec("Lens Mount") || getLegacySpec("Mount");
+  const isoRange = s.isoRange || getLegacySpec("ISO Sensitivity") || getLegacySpec("ISO");
   const shutterSpeed = s.shutterSpeed || getLegacySpec("Shutter Speed");
   const videoRecording = s.videoRecording || getLegacySpec("Video Recording") || getLegacySpec("Video");
-  const autofocus = s.autofocus || getLegacySpec("Autofocus") || getLegacySpec("AF System");
-  const viewfinder = s.viewfinder || getLegacySpec("Display / Viewfinder") || getLegacySpec("Viewfinder");
+  const autofocus = s.autofocus || getLegacySpec("Autofocus System") || getLegacySpec("AF");
+  const viewfinder = s.viewfinder || getLegacySpec("Viewfinder") || getLegacySpec("EVF");
+  const displaySize = s.displaySize || getLegacySpec("LCD Monitor") || getLegacySpec("Display");
   const connectivity = s.connectivity || getLegacySpec("Connectivity") || getLegacySpec("Wi-Fi / Bluetooth");
   const storage = s.storage || getLegacySpec("Storage") || getLegacySpec("Card Slot");
-  const batteryLife = s.batteryLife || getLegacySpec("Battery");
+  const batteryLife = s.batteryLife || getLegacySpec("Battery") || getLegacySpec("Battery Life");
 
   // Dimensions & Weight
   const formattedDim = formatDimension(sInfo?.dimensions, unitSystem);
@@ -41,14 +44,13 @@ export function CameraTemplate({ product, unitSystem }: CameraTemplateProps) {
     : getLegacySpec("Weight");
 
   const whatsInTheBox = sInfo?.whatsInTheBox || [
-    `${product.title} Camera Body`,
+    `${product.title} Body`,
     "Rechargeable Lithium-Ion Battery Pack",
-    "Battery Charger & Cable",
-    "Camera Strap & Body Cap",
-    "Instruction Manual",
+    "Battery Charger & AC Adapter",
+    "Shoulder Strap & Body Cap",
   ];
 
-  const warranty = sInfo?.warranty || "2-Year Official Camera Manufacturer Warranty";
+  const warranty = sInfo?.warranty || "2-Year Official Camera Warranty + Concierge Support";
 
   return (
     <div className="space-y-10 text-[#261816]">
@@ -58,9 +60,7 @@ export function CameraTemplate({ product, unitSystem }: CameraTemplateProps) {
           <h2 className="text-sm sm:text-base font-black text-[#8b0000] uppercase tracking-wider">
             PRODUCT OVERVIEW
           </h2>
-          <p className="text-xs sm:text-sm text-[#5a403c] leading-relaxed bg-[#faf8f8] p-4 rounded-2xl border border-[#e3beb8]/40">
-            {overview}
-          </p>
+          <DescriptionRenderer htmlContent={overview} />
         </section>
       )}
 

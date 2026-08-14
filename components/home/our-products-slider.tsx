@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import { DemoLink as Link } from "@/components/demo/demo-link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export function OurProductsSlider() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -116,8 +116,8 @@ export function OurProductsSlider() {
   }, [isInteracting, handleScroll]);
 
   return (
-    <section className="py-10 sm:py-16 lg:py-20 bg-white border-b border-[#e3beb8]/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+    <section className="py-4 sm:py-6 lg:py-8 bg-white border-b border-[#e3beb8]/30">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#e3beb8]/40 pb-5">
           <div>
@@ -130,22 +130,31 @@ export function OurProductsSlider() {
           </div>
         </div>
 
-        {/* Horizontal Touch Momentum Scroll Track */}
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          onMouseEnter={() => setIsInteracting(true)}
-          onMouseLeave={() => setIsInteracting(false)}
-          onTouchStart={() => setIsInteracting(true)}
-          onTouchEnd={() => setIsInteracting(false)}
-          onTouchCancel={() => setIsInteracting(false)}
-          className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 pt-2 no-scrollbar touch-pan-x overscroll-x-contain"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-            WebkitOverflowScrolling: "touch",
-          }}
-        >
+        {/* Horizontal Touch Momentum Scroll Track with Border Feathering */}
+        <div className="relative group/track">
+          {/* Left Border Feathering Fade */}
+          <div className="absolute left-0 top-0 bottom-4 w-8 sm:w-16 bg-gradient-to-r from-white via-white/80 to-transparent z-10 pointer-events-none" />
+
+          {/* Right Border Feathering Fade */}
+          <div className="absolute right-0 top-0 bottom-4 w-8 sm:w-16 bg-gradient-to-l from-white via-white/80 to-transparent z-10 pointer-events-none" />
+
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            onMouseEnter={() => setIsInteracting(true)}
+            onMouseLeave={() => setIsInteracting(false)}
+            onTouchStart={() => setIsInteracting(true)}
+            onTouchEnd={() => setIsInteracting(false)}
+            onTouchCancel={() => setIsInteracting(false)}
+            className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 pt-2 no-scrollbar touch-pan-x overscroll-x-contain"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              WebkitOverflowScrolling: "touch",
+              maskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)",
+              WebkitMaskImage: "linear-gradient(to right, transparent, black 3%, black 97%, transparent)",
+            }}
+          >
           {productCategories.map((item) => (
             <Link
               key={item.id}
@@ -181,6 +190,7 @@ export function OurProductsSlider() {
               </div>
             </Link>
           ))}
+        </div>
         </div>
 
         {/* Progress Indicator */}

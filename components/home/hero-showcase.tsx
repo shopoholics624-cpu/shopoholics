@@ -11,21 +11,15 @@ export function HeroShowcase() {
   const slides = [
     {
       id: 1,
-      image: "https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?q=80&w=2000&auto=format&fit=crop",
-      alt: "Apex Smartphone Pro Titanium",
-      ctaHref: "/products/flagship-smartphone-pro",
+      image: "/images/hero-banner-1.jpg",
+      alt: "Upgrade Your World With Smart Technology",
+      ctaHref: "/shop",
     },
     {
       id: 2,
-      image: "https://images.unsplash.com/photo-1603302576837-37561b2e2302?q=80&w=2000&auto=format&fit=crop",
-      alt: "HyperBook Ultra 16 M4 Compute",
-      ctaHref: "/shop?category=laptops",
-    },
-    {
-      id: 3,
-      image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?q=80&w=2000&auto=format&fit=crop",
-      alt: "AeroBuds Studio Max Acoustics",
-      ctaHref: "/shop?category=audio",
+      image: "/images/hero-banner-2.jpg",
+      alt: "Next Level Performance - Experience Power, Speed, and Innovation",
+      ctaHref: "/shop?category=smartphones",
     },
   ];
 
@@ -50,24 +44,26 @@ export function HeroShowcase() {
   return (
     <section className="relative overflow-hidden bg-white w-full">
       {/* Full Screen Edge-to-Edge Hero Banner Carousel (No Borders) */}
-      <div className="relative w-full h-[55vh] sm:h-[70vh] md:h-[80vh] lg:h-[85vh] overflow-hidden bg-black group">
+      <div className="relative w-full h-[65vh] sm:h-[78vh] md:h-[86vh] lg:h-[92vh] overflow-hidden bg-black group">
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.id}
-            initial={{ opacity: 0, scale: 1.03 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="w-full h-full relative flex items-center justify-center bg-[#0d0d0d]"
           >
-            <Link href={slide.ctaHref} className="block w-full h-full cursor-pointer relative">
+            <Link href={slide.ctaHref} className="block w-full h-full cursor-pointer relative flex items-center justify-center">
               {/* eslint-disable-next-img-element */}
               <img
                 src={slide.image}
                 alt={slide.alt}
-                className="w-full h-full object-cover object-center transition-transform duration-1000 group-hover:scale-105"
+                className="w-full h-full object-contain sm:object-cover object-center"
                 loading="eager"
               />
+              {/* Subtle Overlay Gradient for Optimal Header & Navigation Contrast */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/40 pointer-events-none" />
             </Link>
           </motion.div>
         </AnimatePresence>

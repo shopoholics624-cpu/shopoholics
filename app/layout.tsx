@@ -4,6 +4,8 @@ import "./globals.css";
 import { CartProvider } from "@/hooks/use-cart";
 import { CompareProvider } from "@/hooks/use-compare";
 import { DemoProvider } from "@/hooks/use-demo";
+import { WishlistProvider } from "@/hooks/use-wishlist";
+import { AuthProvider } from "@/hooks/use-auth";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { MobileNav } from "@/components/layout/mobile-nav";
@@ -15,28 +17,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: "Shop-O-Holics | Immersive Luxury Showroom",
-    template: "%s | Shop-O-Holics",
-  },
-  description:
-    "Experience Crimson Luxe high-performance titanium smartphones, laptops, audio, and wearables crafted with Apple-standard precision.",
-  keywords: [
-    "Luxury Electronics",
-    "Apex Smartphone Pro",
-    "HyperBook Ultra 16",
-    "Titanium Hardware",
-    "Crimson Luxe",
-    "AeroBuds Studio Max",
-  ],
-  authors: [{ name: "Shop-O-Holics" }],
+  title: "Shop-O-Holics | Luxury Flagship Electronics",
+  description: "Shop-O-Holics - Premium store for smartphones, laptops, audio, and flagship tech.",
   openGraph: {
-    title: "Shop-O-Holics | Luxury Electronics Retail",
-    description:
-      "Precision-engineered titanium hardware and high-performance mobile devices.",
-    url: "https://shop-o-holics.com",
-    siteName: "Shop-O-Holics",
-    locale: "en_US",
+    title: "Shop-O-Holics | Luxury Flagship Electronics",
+    description: "Shop-O-Holics - Premium store for smartphones, laptops, audio, and flagship tech.",
     type: "website",
   },
 };
@@ -48,16 +33,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="antialiased min-h-screen flex flex-col justify-between">
+      <body className={`${inter.className} antialiased min-h-screen flex flex-col justify-between`}>
         <DemoProvider>
-          <CartProvider>
-            <CompareProvider>
-              <Header />
-              <main className="flex-1 pt-[72px] sm:pt-[76px]">{children}</main>
-              <Footer />
-              <MobileNav />
-            </CompareProvider>
-          </CartProvider>
+          <AuthProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <CompareProvider>
+                  <Header />
+                  <main className="flex-1">{children}</main>
+                  <Footer />
+                  <MobileNav />
+                </CompareProvider>
+              </CartProvider>
+            </WishlistProvider>
+          </AuthProvider>
         </DemoProvider>
       </body>
     </html>

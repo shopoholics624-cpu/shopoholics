@@ -6,7 +6,6 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { motion } from "framer-motion";
 import { DemoLink as Link } from "@/components/demo/demo-link";
 import {
-  Sparkles,
   ArrowRight,
   Cpu,
   ShieldCheck,
@@ -67,7 +66,7 @@ export function HorizontalShowcase() {
       ctaHref: "/shop",
       specs: [
         { label: "Neural Engine", val: "3nm Architecture", icon: Cpu },
-        { label: "Camera Optics", val: "200MP Quad Sensor", icon: Sparkles },
+        { label: "Camera Optics", val: "200MP Quad Sensor", icon: Camera },
         { label: "Protection", val: "Titanium Grade 5", icon: ShieldCheck },
       ],
     },
@@ -113,7 +112,7 @@ export function HorizontalShowcase() {
       specs: [
         { label: "Acoustics", val: "Dolby Atmos 7.1.4", icon: Zap },
         { label: "Display Tech", val: "8K MicroLED Screen", icon: Tv },
-        { label: "Audio", val: "Lossless Ultra Wireless", icon: Sparkles },
+        { label: "Audio", val: "Lossless Ultra Wireless", icon: Zap },
       ],
     },
     {
@@ -145,7 +144,7 @@ export function HorizontalShowcase() {
       specs: [
         { label: "Warranty", val: "2-Year Hardware Coverage", icon: ShieldCheck },
         { label: "Delivery", val: "Free Express Courier", icon: Zap },
-        { label: "Guarantee", val: "30-Day Unboxing Return", icon: Sparkles },
+        { label: "Guarantee", val: "30-Day Unboxing Return", icon: ShieldCheck },
       ],
     },
   ];
@@ -274,7 +273,6 @@ export function HorizontalShowcase() {
         {/* Section Header */}
         <div className="space-y-2 border-b border-[#e3beb8]/40 pb-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#ffe9e6] border border-[#e3beb8] text-[#8b0000] text-[11px] font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-[#e51c10]" />
             Hardware Ecosystem
           </div>
           <h2 className="text-2xl sm:text-4xl font-extrabold text-[#261816] tracking-tight">

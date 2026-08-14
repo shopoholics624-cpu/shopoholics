@@ -5,6 +5,8 @@ import { UnitSystem, formatDimension, convertMeasurement, isValidValue } from "@
 import { SpecRow, SpecSectionHeader } from "../spec-row";
 import { Package, ShieldCheck, CheckCircle2 } from "lucide-react";
 
+import { DescriptionRenderer } from "../description-renderer";
+
 interface LaptopTemplateProps {
   product: Product;
   unitSystem: UnitSystem;
@@ -19,7 +21,7 @@ export function LaptopTemplate({ product, unitSystem }: LaptopTemplateProps) {
     return found ? found.value : null;
   };
 
-  const overview = sInfo?.overview || product.description;
+  const overview = (product.description && product.description.trim()) || (sInfo?.overview && sInfo.overview.trim()) || "No product description available.";
   const keyFeatures = sInfo?.keyFeatures || product.features;
 
   const displaySize = s.displaySize || getLegacySpec("Display Size") || getLegacySpec("Display");
@@ -60,9 +62,7 @@ export function LaptopTemplate({ product, unitSystem }: LaptopTemplateProps) {
           <h2 className="text-sm sm:text-base font-black text-[#8b0000] uppercase tracking-wider">
             PRODUCT OVERVIEW
           </h2>
-          <p className="text-xs sm:text-sm text-[#5a403c] leading-relaxed bg-[#faf8f8] p-4 rounded-2xl border border-[#e3beb8]/40">
-            {overview}
-          </p>
+          <DescriptionRenderer htmlContent={overview} />
         </section>
       )}
 
