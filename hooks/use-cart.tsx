@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from "react";
+import { useState, useEffect, useCallback, useRef, createContext, useContext, ReactNode } from "react";
 import { CartItem, ShippingAddress, PaymentDetails, GstDetails, WooCommerceCartTotals } from "@/types/cart";
 import { Product, ProductVariant } from "@/types/product";
 import { useAuth } from "@/hooks/use-auth";
@@ -20,15 +20,16 @@ interface CartContextType {
     selectedAttributes?: Record<string, string>,
     isCardAdd?: boolean
   ) => Promise<{ success: boolean; message?: string }>;
-  removeFromCart: (itemId: string) => void;
-  updateQuantity: (itemId: string, quantity: number) => void;
+  removeFromCart: (itemId: string) => Promise<void>;
+  updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   toggleProtectionPlan: (itemId: string) => void;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
   subtotal: number;
   protectionSubtotal: number;
   tax: number;
   shippingCost: number;
   discountTotal: number;
+  appliedOffer?: import("@/types/cart").AppliedCartOffer | null;
   total: number;
   itemCount: number;
   hasFreeGiftBundle: boolean;
@@ -41,6 +42,7 @@ interface CartContextType {
   setGstDetails: React.Dispatch<React.SetStateAction<GstDetails>>;
   isSyncing: boolean;
   updatingItemIds: Record<string, boolean>;
+  deletingItemIds: Record<string, boolean>;
 }
 
 const defaultShipping: ShippingAddress = {
@@ -95,43 +97,43 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [updatingItemIds, setUpdatingItemIds] = useState<Record<string, boolean>>({});
+  const [deletingItemIds, setDeletingItemIds] = useState<Record<string, boolean>>({});
 
-  // Sync cart from WooCommerce server API on mount or when authentication state changes
+  // Sequence counter to prevent race conditions from out-of-order API responses
+  const requestSeqRef = useRef<number>(0);
+
+  // Sync cart from authoritative WooCommerce/server endpoint on mount and auth changes
   useEffect(() => {
     let isMounted = true;
+    const seq = ++requestSeqRef.current;
+
+    // Purge any legacy localStorage cache to guarantee zero resurrecting of deleted items
+    try {
+      localStorage.removeItem("shop_oholics_cart");
+    } catch {}
+
     async function syncInitialCart() {
       try {
-        const res = await fetch("/api/cart");
+        const res = await fetch(`/api/cart?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: { "Cache-Control": "no-cache" },
+        });
+
         if (res.ok) {
           const data = await res.json();
-          if (isMounted && data.success) {
+          if (isMounted && seq >= requestSeqRef.current && data.success) {
             if (Array.isArray(data.items)) {
               setItems(data.items);
+            } else {
+              setItems([]);
             }
             if (data.totals) {
               setWooTotals(data.totals);
             }
           }
-        } else {
-          const savedCart = localStorage.getItem("shop_oholics_cart");
-          if (savedCart) {
-            const parsed = JSON.parse(savedCart);
-            if (Array.isArray(parsed) && parsed.length > 0 && isMounted) {
-              setItems(parsed);
-            }
-          }
         }
       } catch (err) {
-        console.warn("[useCart] Initial cart sync active:", err);
-        const savedCart = localStorage.getItem("shop_oholics_cart");
-        if (savedCart) {
-          try {
-            const parsed = JSON.parse(savedCart);
-            if (Array.isArray(parsed) && parsed.length > 0 && isMounted) {
-              setItems(parsed);
-            }
-          } catch {}
-        }
+        console.warn("[useCart] Initial cart sync error:", err);
       } finally {
         if (isMounted) setIsHydrated(true);
       }
@@ -143,17 +145,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
   }, [isAuthenticated]);
 
-  // Save to local storage for transient offline UI state
-  useEffect(() => {
-    if (isHydrated) {
-      try {
-        localStorage.setItem("shop_oholics_cart", JSON.stringify(items));
-      } catch {
-        // ignore storage errors
-      }
-    }
-  }, [items, isHydrated]);
-
   const addToCartAsync = useCallback(
     async (
       product: Product,
@@ -162,13 +153,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       customSelectedAttributes?: Record<string, string>,
       isCardAdd = false
     ): Promise<{ success: boolean; message?: string }> => {
-      // AUTOMATIC LOGIN REDIRECT IF NOT LOGGED IN
       if (!isAuthenticated) {
         const currentPath = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
         window.location.href = `/login?redirect=${encodeURIComponent(currentPath)}`;
         return { success: false, message: "Please log in to add items to your bag." };
       }
 
+      const seq = ++requestSeqRef.current;
       setIsSyncing(true);
 
       const targetVariant = variant || (product.variants && product.variants.length > 0 ? product.variants[0] : undefined);
@@ -184,7 +175,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         const res = await fetch("/api/cart", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-cache" },
           body: JSON.stringify({
             product,
             selectedVariant: targetVariant,
@@ -199,8 +190,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
 
         if (res.ok && data.success) {
-          if (Array.isArray(data.items)) setItems(data.items);
-          if (data.totals) setWooTotals(data.totals);
+          if (seq >= requestSeqRef.current) {
+            if (Array.isArray(data.items)) setItems(data.items);
+            if (data.totals) setWooTotals(data.totals);
+          }
           return { success: true };
         } else if (data.requireAuth || res.status === 401) {
           const currentPath = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
@@ -213,7 +206,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         console.warn("[useCart] Server cart POST sync exception:", err);
         return { success: false, message: "This product is currently unavailable." };
       } finally {
-        setIsSyncing(false);
+        if (seq >= requestSeqRef.current) {
+          setIsSyncing(false);
+        }
       }
     },
     [isAuthenticated]
@@ -231,42 +226,46 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [addToCartAsync]
   );
 
-  const removeFromCart = useCallback((itemId: string) => {
+  const removeFromCart = useCallback(async (itemId: string) => {
+    const seq = ++requestSeqRef.current;
+    setDeletingItemIds((prev) => ({ ...prev, [itemId]: true }));
     setIsSyncing(true);
-    setItems((prev) => {
-      const targetItem = prev.find((item) => item.id === itemId);
-      if (!targetItem) return prev;
-      const targetProductId = targetItem.product.id;
-      return prev.filter((item) => item.id !== itemId && item.parentProductId !== targetProductId);
-    });
 
-    fetch(`/api/cart?itemId=${encodeURIComponent(itemId)}`, {
-      method: "DELETE",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          if (Array.isArray(data.items)) setItems(data.items);
-          if (data.totals) setWooTotals(data.totals);
-        }
-      })
-      .catch((err) => console.warn("[useCart] Server cart DELETE sync fallback:", err))
-      .finally(() => setIsSyncing(false));
+    try {
+      const res = await fetch(`/api/cart?itemId=${encodeURIComponent(itemId)}`, {
+        method: "DELETE",
+        headers: { "Cache-Control": "no-cache" },
+      });
+
+      const data = await res.json();
+      if (seq >= requestSeqRef.current && res.ok && data.success) {
+        if (Array.isArray(data.items)) setItems(data.items);
+        if (data.totals) setWooTotals(data.totals);
+      }
+    } catch (err) {
+      console.warn("[useCart] Server cart DELETE sync error:", err);
+    } finally {
+      setDeletingItemIds((prev) => {
+        const next = { ...prev };
+        delete next[itemId];
+        return next;
+      });
+      if (seq >= requestSeqRef.current) {
+        setIsSyncing(false);
+      }
+    }
   }, []);
 
   const updateQuantity = useCallback(
     async (itemId: string, targetQuantity: number) => {
       if (targetQuantity <= 0) {
-        removeFromCart(itemId);
+        await removeFromCart(itemId);
         return;
       }
 
-      // Per-Item Lock to prevent rapid double click race conditions
-      setUpdatingItemIds((prev) => {
-        if (prev[itemId]) return prev;
-        return { ...prev, [itemId]: true };
-      });
+      const seq = ++requestSeqRef.current;
 
+      setUpdatingItemIds((prev) => ({ ...prev, [itemId]: true }));
       setIsSyncing(true);
 
       // Optimistic update
@@ -277,21 +276,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         const res = await fetch("/api/cart", {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-cache" },
           body: JSON.stringify({ itemId, quantity: targetQuantity }),
         });
 
         const data = await res.json();
 
-        if (res.ok && data.success && Array.isArray(data.items)) {
+        if (seq >= requestSeqRef.current && res.ok && data.success && Array.isArray(data.items)) {
           setItems(data.items);
           if (data.totals) setWooTotals(data.totals);
-        } else {
-          // Re-fetch authoritative cart on server rejection/error without setting items to []
-          const syncRes = await fetch("/api/cart");
+        } else if (seq >= requestSeqRef.current) {
+          // Re-fetch authoritative cart on rejection
+          const syncRes = await fetch(`/api/cart?_t=${Date.now()}`, { cache: "no-store" });
           if (syncRes.ok) {
             const syncData = await syncRes.json();
-            if (syncData.success && Array.isArray(syncData.items)) {
+            if (seq >= requestSeqRef.current && syncData.success && Array.isArray(syncData.items)) {
               setItems(syncData.items);
               if (syncData.totals) setWooTotals(syncData.totals);
             }
@@ -300,7 +299,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.warn("[useCart] Server cart PUT sync exception:", err);
       } finally {
-        setIsSyncing(false);
+        if (seq >= requestSeqRef.current) {
+          setIsSyncing(false);
+        }
         setUpdatingItemIds((prev) => {
           const next = { ...prev };
           delete next[itemId];
@@ -319,7 +320,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const clearCart = useCallback(() => {
+  const clearCart = useCallback(async () => {
+    const seq = ++requestSeqRef.current;
     setIsSyncing(true);
     setItems([]);
     setWooTotals({
@@ -331,45 +333,54 @@ export function CartProvider({ children }: { children: ReactNode }) {
       totalQuantity: 0,
     });
 
-    fetch("/api/cart?clear=true", {
-      method: "DELETE",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          setItems([]);
-          if (data.totals) setWooTotals(data.totals);
-        }
-      })
-      .catch((err) => console.warn("[useCart] Server cart CLEAR sync fallback:", err))
-      .finally(() => setIsSyncing(false));
+    try {
+      const res = await fetch("/api/cart?clear=true", {
+        method: "DELETE",
+        headers: { "Cache-Control": "no-cache" },
+      });
+      const data = await res.json();
+      if (seq >= requestSeqRef.current && res.ok && data.success) {
+        setItems([]);
+        if (data.totals) setWooTotals(data.totals);
+      }
+    } catch (err) {
+      console.warn("[useCart] Server cart CLEAR sync error:", err);
+    } finally {
+      if (seq >= requestSeqRef.current) {
+        setIsSyncing(false);
+      }
+    }
   }, []);
 
-  // Pure WooCommerce cart totals (no mock additions or hardcoded tax/shipping)
+  // Pure WooCommerce cart totals
   const subtotal =
     wooTotals.subtotal > 0
       ? wooTotals.subtotal
-      : (items || []).reduce((acc, item) => {
-          if (!item || item.isFreeGift) return acc;
+      : items.reduce((sum, item) => {
+          if (item.isFreeGift || item.unavailable) return sum;
           const price = item.selectedVariant?.price ?? item.product?.price ?? 0;
-          const qty = item.quantity || 1;
-          return acc + price * qty;
+          return sum + price * item.quantity;
         }, 0);
 
-  const protectionSubtotal = (items || []).reduce(
-    (acc, item) =>
-      acc + (item && item.hasProtectionPlan && !item.isFreeGift ? (item.protectionPlanCost || 0) * (item.quantity || 1) : 0),
-    0
-  );
+  const protectionSubtotal = items.reduce((sum, item) => {
+    return sum + (item.hasProtectionPlan ? (item.protectionPlanCost || 990) * item.quantity : 0);
+  }, 0);
 
-  const tax = wooTotals.taxTotal || 0;
-  const shippingCost = wooTotals.shippingTotal || 0;
-  const discountTotal = wooTotals.discountTotal || 0;
-  const total = wooTotals.total > 0 ? wooTotals.total : subtotal;
+  const tax = wooTotals.taxTotal;
+  const shippingCost = wooTotals.shippingTotal;
+  const discountTotal = wooTotals.discountTotal;
+  const total =
+    wooTotals.total > 0
+      ? wooTotals.total + protectionSubtotal
+      : subtotal + protectionSubtotal + tax + shippingCost - discountTotal;
 
-  const itemCount = (items || []).reduce((acc, item) => (item && !item.isFreeGift ? acc + (item.quantity || 1) : acc), 0);
-  const freeGiftCount = (items || []).filter((item) => item && item.isFreeGift).length;
-  const hasFreeGiftBundle = freeGiftCount > 0;
+  const itemCount =
+    wooTotals.totalQuantity > 0
+      ? wooTotals.totalQuantity
+      : items.reduce((count, item) => (!item.isFreeGift && !item.unavailable ? count + item.quantity : count), 0);
+
+  const hasFreeGiftBundle = items.some((item) => item.isFreeGift);
+  const freeGiftCount = items.filter((item) => item.isFreeGift).reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <CartContext.Provider
@@ -386,6 +397,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         tax,
         shippingCost,
         discountTotal,
+        appliedOffer: wooTotals.appliedOffer,
         total,
         itemCount,
         hasFreeGiftBundle,
@@ -398,6 +410,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setGstDetails,
         isSyncing,
         updatingItemIds,
+        deletingItemIds,
       }}
     >
       {children}

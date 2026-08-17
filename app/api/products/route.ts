@@ -1,3 +1,6 @@
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 import { NextRequest, NextResponse } from "next/server";
 import { getWooProducts, getWooProductBySlug, getWooProductById } from "@/lib/woocommerce";
 import { WooProductQueryParams } from "@/types/woocommerce";
@@ -14,28 +17,42 @@ export async function GET(request: NextRequest) {
     if (slugParam) {
       const wooProduct = await getWooProductBySlug(slugParam);
       if (wooProduct) {
-        return NextResponse.json({
-          success: true,
-          product: wooProduct,
-          products: [wooProduct],
-          total: 1,
-          totalPages: 1,
-          isConfigured: true,
-        });
+        return NextResponse.json(
+          {
+            success: true,
+            product: wooProduct,
+            products: [wooProduct],
+            total: 1,
+            totalPages: 1,
+            isConfigured: true,
+          },
+          {
+            headers: {
+              "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+            },
+          }
+        );
       }
     }
 
     if (idParam) {
       const wooProduct = await getWooProductById(idParam);
       if (wooProduct) {
-        return NextResponse.json({
-          success: true,
-          product: wooProduct,
-          products: [wooProduct],
-          total: 1,
-          totalPages: 1,
-          isConfigured: true,
-        });
+        return NextResponse.json(
+          {
+            success: true,
+            product: wooProduct,
+            products: [wooProduct],
+            total: 1,
+            totalPages: 1,
+            isConfigured: true,
+          },
+          {
+            headers: {
+              "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+            },
+          }
+        );
       }
     }
 
@@ -96,7 +113,7 @@ export async function GET(request: NextRequest) {
       {
         status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
         },
       }
     );

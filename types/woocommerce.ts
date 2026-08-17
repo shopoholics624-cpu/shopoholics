@@ -98,6 +98,8 @@ export interface WooProduct {
     height: string;
   };
   categories: WooCategory[];
+  tags?: Array<{ id: number; name: string; slug: string }>;
+  brands?: Array<{ id: number; name: string; slug: string }>;
   images: WooImage[];
   attributes: WooAttribute[];
   variations: number[];
@@ -106,6 +108,15 @@ export interface WooProduct {
   related_ids: number[];
   average_rating: string;
   rating_count: number;
+}
+
+export interface WooReview {
+  id: number;
+  date_created: string;
+  reviewer: string;
+  review: string;
+  rating: number;
+  verified: boolean;
 }
 
 export interface WooProductQueryParams {

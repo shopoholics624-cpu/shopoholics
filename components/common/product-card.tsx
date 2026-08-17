@@ -14,9 +14,10 @@ import { useState } from "react";
 
 interface ProductCardProps {
   product: Product;
+  variant?: "standard" | "shop";
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, variant = "standard" }: ProductCardProps) {
   const { addToCartAsync } = useCart();
   const { addToCompare, isInCompare, removeFromCompare } = useCompare();
   const { isInWishlist, toggleWishlist } = useWishlist();
@@ -92,13 +93,27 @@ export function ProductCard({ product }: ProductCardProps) {
   const isAnyVariantInStock =
     product.variants && product.variants.length > 0
       ? product.variants.some((v) => v.inStock && v.stockStatus !== "outofstock")
-      : true;
+      : product.inStock !== false;
 
-  return (
+  const originalPriceNum = product.originalPrice || 0;
+  const currentPriceNum = product.price || 0;
+
+  const discountPercent =
+    originalPriceNum > currentPriceNum
+      ? Math.round(((originalPriceNum - currentPriceNum) / originalPriceNum) * 100)
+      : null;
+
+  const savingsAmount =
+    originalPriceNum > currentPriceNum ? originalPriceNum - currentPriceNum : null;
+
+  // Render Standard Vertical Card (Always used for Homepage Flagship section and standard grids)
+  const renderStandardCard = (hiddenOnMobile = false) => (
     <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-      className="group relative z-0 hover:z-20 bg-white hover:bg-[#F1F0EC] rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] flex flex-col justify-between overflow-hidden h-full transition-all duration-300"
+      className={`${
+        hiddenOnMobile ? "hidden sm:flex" : "flex"
+      } group relative z-0 hover:z-20 bg-white hover:bg-[#F1F0EC] rounded-2xl sm:rounded-3xl p-3 sm:p-4 border border-[#D4D3CD] shadow-sm hover:shadow-xl hover:border-[#4A4944] flex-col justify-between overflow-hidden h-full transition-all duration-300`}
     >
       {/* Top Badge & Action Icons */}
       <div>
@@ -121,7 +136,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <button
               onClick={handleToggleWishlist}
               title={inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
-              className={`p-1.5 rounded-full transition-all ${
+              className={`p-1.5 rounded-full transition-all cursor-pointer ${
                 inWishlist
                   ? "bg-[#ffe9e6] text-[#8b0000]"
                   : "bg-white text-[#5a403c] hover:bg-[#ffe9e6] hover:text-[#8b0000]"
@@ -133,7 +148,7 @@ export function ProductCard({ product }: ProductCardProps) {
             <button
               onClick={handleToggleCompare}
               title={inCompare ? "Remove from Compare" : "Compare Device"}
-              className={`p-1.5 rounded-full transition-all ${
+              className={`p-1.5 rounded-full transition-all cursor-pointer ${
                 inCompare
                   ? "bg-[#8b0000] text-white"
                   : "bg-white text-[#5a403c] hover:bg-[#ffe9e6] hover:text-[#8b0000]"
@@ -156,7 +171,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* Title & Specs summary */}
         <div className="mt-2 space-y-0.5">
-          <RatingStars rating={product.rating} reviewCount={product.reviewCount} size={10} />
+          <RatingStars rating={product.rating || 0} reviewCount={product.reviewCount || 0} size={10} />
           <Link href={`/products/${product.slug}`}>
             <h3 className="font-bold text-xs sm:text-base text-[#261816] group-hover:text-[#8b0000] transition-colors leading-snug line-clamp-1">
               {product.title}
@@ -175,9 +190,9 @@ export function ProductCard({ product }: ProductCardProps) {
             <span className="font-extrabold text-xs sm:text-base text-[#8b0000]">
               {formatPrice(product.price)}
             </span>
-            {product.originalPrice && (
+            {originalPriceNum > currentPriceNum && (
               <span className="text-[9px] sm:text-[10px] text-[#8e706b] line-through font-medium hidden sm:inline">
-                {formatPrice(product.originalPrice)}
+                {formatPrice(originalPriceNum)}
               </span>
             )}
           </div>
@@ -188,7 +203,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleAddToCart}
             disabled={isAdding}
-            className={`w-full sm:w-auto flex items-center justify-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl font-semibold text-xs transition-all shadow-sm active:scale-95 min-h-[34px] sm:min-h-[38px] disabled:opacity-75 ${
+            className={`w-full sm:w-auto flex items-center justify-center gap-1 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl font-semibold text-xs transition-all shadow-sm active:scale-95 min-h-[34px] sm:min-h-[38px] disabled:opacity-75 cursor-pointer ${
               cardError
                 ? "bg-amber-700 text-white"
                 : added
@@ -224,5 +239,169 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
       </div>
     </motion.div>
+  );
+
+  // If standard variant (homepage flagship, product grids), return standard card
+  if (variant !== "shop") {
+    return renderStandardCard(false);
+  }
+
+  // If shop variant, render mobile 2-column card on <sm: and standard card on sm:+
+  return (
+    <>
+      {/* Mobile Responsive 2-Column Card for Shop Section */}
+      <div className="block sm:hidden w-full bg-white text-[#261816] rounded-2xl p-3 border border-[#D4D3CD] shadow-sm relative overflow-hidden transition-all active:scale-[0.99]">
+        <div className="flex items-stretch gap-3">
+          {/* Left Column: Image Box + Heart + Compare Pill */}
+          <div className="w-[125px] shrink-0 bg-[#F1F0EC] rounded-xl p-2 flex flex-col justify-between items-center relative border border-[#E5E4DE]">
+            {/* Top-Right Heart Wishlist Button */}
+            <button
+              onClick={handleToggleWishlist}
+              title={inWishlist ? "Remove from Wishlist" : "Add to Wishlist"}
+              className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-white/90 text-[#5a403c] hover:text-[#8b0000] hover:bg-[#ffe9e6] shadow-xs transition-colors z-10 cursor-pointer"
+              aria-label="Wishlist"
+            >
+              <Heart className={`w-3.5 h-3.5 ${inWishlist ? "fill-[#8b0000] text-[#8b0000]" : "text-[#5a403c]"}`} />
+            </button>
+
+            {/* Product Image Link */}
+            <Link
+              href={`/products/${product.slug}`}
+              className="w-full flex-1 flex items-center justify-center my-1"
+            >
+              {/* eslint-disable-next-img-element */}
+              <img
+                src={product.featuredImage}
+                alt={product.title}
+                className="max-h-[105px] w-auto max-w-full object-contain rounded-lg mix-blend-multiply"
+              />
+            </Link>
+
+            {/* Bottom Compare Pill */}
+            <button
+              type="button"
+              onClick={handleToggleCompare}
+              className={`w-full py-1 px-1.5 rounded-full border text-[10px] font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs cursor-pointer ${
+                inCompare
+                  ? "bg-[#8b0000] border-[#8b0000] text-white"
+                  : "bg-white border-[#D4D3CD] text-[#261816] hover:bg-[#ffe9e6] hover:text-[#8b0000]"
+              }`}
+            >
+              <span
+                className={`w-2.5 h-2.5 rounded-full border flex items-center justify-center ${
+                  inCompare ? "border-white bg-white" : "border-[#71706b]"
+                }`}
+              >
+                {inCompare && <span className="w-1.5 h-1.5 rounded-full bg-[#8b0000]" />}
+              </span>
+              <span>Compare</span>
+            </button>
+          </div>
+
+          {/* Right Column: Title, Prices, Savings, Status & Actions */}
+          <div className="flex-1 flex flex-col justify-between py-0.5 space-y-1.5">
+            <div>
+              {/* Brand & Category Label */}
+              <div className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-wider text-[#8e706b]">
+                <span>{product.brand}</span>
+                {product.categoryLabel && <span>• {product.categoryLabel}</span>}
+              </div>
+
+              {/* Product Title */}
+              <Link href={`/products/${product.slug}`} className="block mt-0.5">
+                <h3 className="font-extrabold text-xs leading-snug text-[#261816] line-clamp-2 hover:text-[#8b0000] transition-colors">
+                  {product.title}
+                </h3>
+              </Link>
+            </div>
+
+            {/* Price & Discount Section */}
+            <div>
+              <div className="text-lg font-black text-[#8b0000] tracking-tight leading-none">
+                {formatPrice(product.price)}
+              </div>
+
+              <div className="flex items-center flex-wrap gap-1 mt-1">
+                {originalPriceNum > currentPriceNum && (
+                  <span className="text-[10px] text-[#8e706b] line-through font-medium">
+                    {formatPrice(originalPriceNum)}
+                  </span>
+                )}
+                {savingsAmount && (
+                  <span className="text-[10px] text-[#5a403c] font-medium">
+                    (Save {formatPrice(savingsAmount)})
+                  </span>
+                )}
+                {discountPercent && (
+                  <span className="text-[9px] font-extrabold px-1.5 py-0.2 rounded bg-[#ffe9e6] text-[#8b0000] border border-[#e3beb8]">
+                    {discountPercent}% Off
+                  </span>
+                )}
+              </div>
+
+              {/* Availability Line */}
+              <div className="mt-1.5 flex items-center gap-1 text-[10px] font-semibold">
+                {isAnyVariantInStock ? (
+                  <span className="text-emerald-700 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Available for Delivery
+                  </span>
+                ) : (
+                  <span className="text-rose-700 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    Out of Stock
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Add To Cart / View Button on Mobile */}
+            <div className="pt-1 flex items-center gap-2">
+              {isAnyVariantInStock ? (
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={isAdding}
+                  className={`w-full py-1.5 px-3 rounded-lg font-bold text-xs transition-all flex items-center justify-center gap-1 shadow-sm active:scale-95 cursor-pointer ${
+                    cardError
+                      ? "bg-amber-700 text-white"
+                      : added
+                      ? "bg-emerald-700 text-white"
+                      : "bg-[#8b0000] hover:bg-[#bc0000] text-white"
+                  }`}
+                >
+                  {isAdding ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Adding...</span>
+                    </>
+                  ) : added ? (
+                    <>
+                      <Check className="w-3 h-3" />
+                      <span>Added to Cart</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingBag className="w-3 h-3" />
+                      <span>Add to Cart</span>
+                    </>
+                  )}
+                </button>
+              ) : (
+                <Link
+                  href={`/products/${product.slug}`}
+                  className="w-full py-1.5 px-3 rounded-lg font-bold text-xs bg-[#F1F0EC] text-[#8e706b] text-center border border-[#D4D3CD] block"
+                >
+                  View Details
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Card for Shop Section */}
+      {renderStandardCard(true)}
+    </>
   );
 }

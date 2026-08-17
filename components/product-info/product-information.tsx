@@ -17,6 +17,27 @@ interface ProductInformationProps {
 export function ProductInformation({ product }: ProductInformationProps) {
   const unitSystem = "metric";
 
+  const hasDescription = Boolean(product.description && product.description.trim());
+  const shortDesc = (product.shortDescription || product.short_description || "").trim();
+  const hasShortDescription = Boolean(shortDesc);
+  const hasSpecs = Boolean(
+    (product.specs && product.specs.length > 0) ||
+    product.structuredInfo?.dimensions ||
+    product.structuredInfo?.weight
+  );
+  const hasBox = Boolean(
+    product.structuredInfo?.whatsInTheBox && product.structuredInfo.whatsInTheBox.length > 0
+  );
+  const hasWarranty = Boolean(
+    product.structuredInfo?.warranty && product.structuredInfo.warranty.trim()
+  );
+
+  const hasAnyContent = hasDescription || hasShortDescription || hasSpecs || hasBox || hasWarranty;
+
+  if (!hasAnyContent) {
+    return null;
+  }
+
   // Determine category template
   const cat = (product.category || "").toLowerCase();
 

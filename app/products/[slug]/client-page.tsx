@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Product } from "@/types/product";
 import { useCart } from "@/hooks/use-cart";
 import { useCompare } from "@/hooks/use-compare";
@@ -12,15 +12,13 @@ import { isColourAttribute } from "@/lib/attribute-utils";
 import { RatingStars } from "@/components/common/rating-stars";
 import { FreeGiftBundleCard } from "@/components/product/free-gift-bundle-card";
 import { ProductInformation } from "@/components/product-info/product-information";
-import { InteractiveCanvas } from "@/components/product-detail/interactive-canvas";
+import { ProductReviews } from "@/components/product/product-reviews";
+import { RecommendedProducts } from "@/components/product/recommended-products";
 import { Breadcrumbs } from "@/components/common/breadcrumbs";
 import { DemoLink as Link } from "@/components/demo/demo-link";
 import {
   ShoppingBag,
   ArrowLeftRight,
-  ShieldCheck,
-  Truck,
-  RotateCcw,
   Check,
   ArrowLeft,
   ChevronRight,
@@ -63,6 +61,21 @@ export default function ProductDetailClient({
   const [selectedAttributes, setSelectedAttributes] = useState<Record<string, string>>({});
   const [quantity, setQuantity] = useState<number>(1);
 
+  // Dynamic unified rating & review count for the current product
+  const [reviewSummary, setReviewSummary] = useState<{ rating: number; reviewCount: number }>({
+    rating: initialProduct?.rating || 0,
+    reviewCount: initialProduct?.reviewCount || 0,
+  });
+
+  const handleReviewsUpdated = useCallback(({ rating, reviewCount }: { rating: number; reviewCount: number }) => {
+    setReviewSummary((prev) => {
+      if (prev.rating === rating && prev.reviewCount === reviewCount) {
+        return prev;
+      }
+      return { rating, reviewCount };
+    });
+  }, []);
+
   const { addToCart, addToCartAsync } = useCart();
   const { addToCompare, isInCompare, removeFromCompare } = useCompare();
   const { isInWishlist, toggleWishlist } = useWishlist();
@@ -70,12 +83,19 @@ export default function ProductDetailClient({
 
   const inWishlist = product ? isInWishlist(product.id) : false;
 
-  // Fetch updated WooCommerce product client-side matching exact slug
+  // Fetch updated WooCommerce product client-side matching exact slug (only if initialProduct missing)
   useEffect(() => {
+    if (initialProduct) return;
     let isMounted = true;
     async function fetchFreshWooProduct() {
       try {
-        const res = await fetch(`/api/products?slug=${encodeURIComponent(slug)}`);
+        const res = await fetch(`/api/products?slug=${encodeURIComponent(slug)}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           if (isMounted && data.success) {
@@ -122,8 +142,10 @@ export default function ProductDetailClient({
       product.variants.forEach((v) => {
         if (v.attributes) {
           Object.entries(v.attributes).forEach(([attrName, optionVal]) => {
-            if (!groupMap[attrName]) groupMap[attrName] = new Set();
-            groupMap[attrName].add(optionVal);
+            if (optionVal) {
+              if (!groupMap[attrName]) groupMap[attrName] = new Set();
+              groupMap[attrName].add(optionVal);
+            }
           });
         }
       });
@@ -389,10 +411,10 @@ export default function ProductDetailClient({
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 transition-all shrink-0 bg-[#fff8f6] p-1 flex items-center justify-center ${
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden border-2 shrink-0 bg-[#fff8f6] p-1 flex items-center justify-center ${
                     selectedImageIndex === idx
-                      ? "border-[#8b0000] shadow-md scale-105"
-                      : "border-[#e3beb8]/60 opacity-70 hover:opacity-100"
+                      ? "border-[#8b0000]"
+                      : "border-[#e3beb8]/60 opacity-80"
                   }`}
                 >
                   {/* eslint-disable-next-img-element */}
@@ -444,7 +466,7 @@ export default function ProductDetailClient({
               </div>
 
               <div className="flex items-center gap-2 pt-0.5">
-                <RatingStars rating={product.rating} reviewCount={product.reviewCount} size={12} />
+                <RatingStars rating={reviewSummary.rating} reviewCount={reviewSummary.reviewCount} size={12} />
                 <span className="text-[10px] text-[#8e706b]">| SKU: {activeVariant.sku || activeVariant.id}</span>
               </div>
             </div>
@@ -684,22 +706,6 @@ export default function ProductDetailClient({
               );
             })()}
 
-            {/* Value Highlights */}
-            <div className="grid grid-cols-3 gap-1.5 pt-3 border-t border-[#e3beb8]/40 text-center">
-              <div className="p-1 space-y-0.5">
-                <ShieldCheck className="w-4 h-4 text-[#8b0000] mx-auto" />
-                <span className="text-[9px] font-bold text-[#261816] block">2-Yr Warranty</span>
-              </div>
-              <div className="p-1 space-y-0.5 border-x border-[#e3beb8]/40">
-                <Truck className="w-4 h-4 text-[#8b0000] mx-auto" />
-                <span className="text-[9px] font-bold text-[#261816] block">Express Courier</span>
-              </div>
-              <div className="p-1 space-y-0.5">
-                <RotateCcw className="w-4 h-4 text-[#8b0000] mx-auto" />
-                <span className="text-[9px] font-bold text-[#261816] block">30-Day Return</span>
-              </div>
-            </div>
-
             {/* Free Gift Bundle Card */}
             {product.freeGiftBundle && (
               <div className="pt-2 border-t border-[#e3beb8]/40">
@@ -712,8 +718,16 @@ export default function ProductDetailClient({
         {/* Standardized Specification & Info Tables */}
         <ProductInformation product={product} />
 
-        {/* 3D Interactive Canvas Preview */}
-        <InteractiveCanvas />
+        {/* WooCommerce Verified Product Reviews */}
+        <ProductReviews
+          productId={product.id}
+          rating={reviewSummary.rating}
+          reviewCount={reviewSummary.reviewCount}
+          onReviewsUpdated={handleReviewsUpdated}
+        />
+
+        {/* Recommended Products in Same Category */}
+        <RecommendedProducts currentProduct={product} />
       </div>
 
       {/* Lightbox Modal */}

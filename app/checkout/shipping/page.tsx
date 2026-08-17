@@ -1,12 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/hooks/use-cart";
 import { useDemo } from "@/hooks/use-demo";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
 import { ShippingAddress } from "@/types/cart";
-import { Truck, ArrowRight, Receipt, Building2, AlertCircle } from "lucide-react";
+import {
+  Truck,
+  ArrowRight,
+  Receipt,
+  Building2,
+  AlertCircle,
+  Search,
+  CheckCircle2,
+  Loader2,
+  UserCheck,
+  Sparkles,
+} from "lucide-react";
 
 export default function ShippingPage() {
   const router = useRouter();
@@ -15,20 +26,95 @@ export default function ShippingPage() {
 
   // Local Form State initialized from shippingAddress
   const [formData, setFormData] = useState<ShippingAddress>({
-    firstName: shippingAddress.firstName || shippingAddress.fullName?.split(" ")[0] || "Alexander",
-    lastName: shippingAddress.lastName || shippingAddress.fullName?.split(" ").slice(1).join(" ") || "Wright",
+    firstName: shippingAddress.firstName || shippingAddress.fullName?.split(" ")[0] || "",
+    lastName: shippingAddress.lastName || shippingAddress.fullName?.split(" ").slice(1).join(" ") || "",
     company: shippingAddress.company || "",
-    email: shippingAddress.email || "alexander@crimsonluxe.com",
-    phone: shippingAddress.phone || "9876543210",
-    address1: shippingAddress.address1 || shippingAddress.addressLine1 || "742 Fifth Avenue",
-    address2: shippingAddress.address2 || shippingAddress.addressLine2 || "Suite 1800",
-    city: shippingAddress.city || "Mumbai",
-    state: shippingAddress.state || "Maharashtra",
-    postcode: shippingAddress.postcode || shippingAddress.postalCode || "400001",
+    email: shippingAddress.email || "",
+    phone: shippingAddress.phone || "",
+    address1: shippingAddress.address1 || shippingAddress.addressLine1 || "",
+    address2: shippingAddress.address2 || shippingAddress.addressLine2 || "",
+    city: shippingAddress.city || "",
+    state: shippingAddress.state || "",
+    postcode: shippingAddress.postcode || shippingAddress.postalCode || "",
     country: shippingAddress.country || "India",
   });
 
+  const [lookupInput, setLookupInput] = useState("");
+  const [isChecking, setIsChecking] = useState(false);
+  const [lookupStatus, setLookupStatus] = useState<{
+    type: "success" | "error" | "info";
+    message: string;
+  } | null>(null);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Function to fetch and auto-fill customer details from Admin/WooCommerce database
+  const handleCheckCustomer = async (queryInput?: string) => {
+    const rawQuery = (queryInput !== undefined ? queryInput : lookupInput).trim();
+    setIsChecking(true);
+    setLookupStatus(null);
+
+    try {
+      const url = rawQuery
+        ? `/api/customer/lookup?query=${encodeURIComponent(rawQuery)}`
+        : `/api/customer/lookup`;
+
+      const res = await fetch(url, { cache: "no-store" });
+      const data = await res.json();
+
+      if (res.ok && data.success && data.customer) {
+        const c = data.customer;
+        setFormData((prev) => ({
+          ...prev,
+          firstName: c.firstName || prev.firstName || "",
+          lastName: c.lastName || prev.lastName || "",
+          company: c.company || prev.company || "",
+          email: c.email || prev.email || "",
+          phone: c.phone || prev.phone || "",
+          address1: c.address1 || prev.address1 || "",
+          address2: c.address2 || prev.address2 || "",
+          city: c.city || prev.city || "",
+          state: c.state || prev.state || "",
+          postcode: c.postcode || prev.postcode || "",
+          country: c.country || prev.country || "India",
+        }));
+
+        if (c.phone && !lookupInput) {
+          setLookupInput(c.phone);
+        } else if (c.email && !lookupInput) {
+          setLookupInput(c.email);
+        }
+
+        setLookupStatus({
+          type: "success",
+          message: `Customer details for "${c.fullName || c.firstName || "Customer"}" automatically pre-filled. You can review and edit any field before submitting.`,
+        });
+
+        // Clear existing validation errors on auto-fill
+        setErrors({});
+      } else {
+        setLookupStatus({
+          type: "error",
+          message:
+            data.message ||
+            "No saved customer details found. Please enter your details manually below.",
+        });
+      }
+    } catch (err: any) {
+      console.warn("[Check Customer Lookup Error]:", err);
+      setLookupStatus({
+        type: "error",
+        message: "Unable to retrieve customer details. Please enter your information manually.",
+      });
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  // Initial load: Attempt automatic lookup if logged in
+  useEffect(() => {
+    handleCheckCustomer();
+  }, []);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -43,7 +129,7 @@ export default function ShippingPage() {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email.trim() || !emailRegex.test(formData.email.trim())) {
-      newErrors.email = "Valid corporate email is required.";
+      newErrors.email = "Valid email is required.";
     }
 
     const phoneRegex = /^[6-9]\d{9}$/;
@@ -107,7 +193,7 @@ export default function ShippingPage() {
       postalCode: formData.postcode.trim(),
     };
 
-    // Store in Cart Context (Temporary Checkout State for Phase 4.2)
+    // Store in Cart Context
     setShippingAddress(validatedAddress);
 
     // Proceed to Payment
@@ -119,10 +205,29 @@ export default function ShippingPage() {
       <div className="flex items-center justify-between pb-4 border-b border-[#ffe9e6]">
         <div>
           <h2 className="text-xl font-extrabold text-[#261816]">Shipping & Delivery Details</h2>
-          <p className="text-xs text-[#5a403c]">Enter your destination address for insured express courier delivery.</p>
+          <p className="text-xs text-[#5a403c]">
+            Enter your destination address for insured express courier delivery.
+          </p>
         </div>
         <Truck className="w-6 h-6 text-[#8b0000]" />
       </div>
+
+      {lookupStatus && (
+        <div
+          className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border transition-all ${
+            lookupStatus.type === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200"
+              : "bg-amber-50 text-amber-800 border-amber-200"
+          }`}
+        >
+          {lookupStatus.type === "success" ? (
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+          )}
+          <span>{lookupStatus.message}</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Name Fields */}
@@ -131,6 +236,7 @@ export default function ShippingPage() {
             <label className="text-xs font-bold text-[#5a403c] uppercase">First Name *</label>
             <input
               type="text"
+              placeholder="e.g. Rahul"
               value={formData.firstName}
               onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
               className={`w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
@@ -148,6 +254,7 @@ export default function ShippingPage() {
             <label className="text-xs font-bold text-[#5a403c] uppercase">Last Name *</label>
             <input
               type="text"
+              placeholder="e.g. Sharma"
               value={formData.lastName}
               onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
               className={`w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
@@ -168,6 +275,7 @@ export default function ShippingPage() {
             <label className="text-xs font-bold text-[#5a403c] uppercase">Company (Optional)</label>
             <input
               type="text"
+              placeholder="Optional: Company / Enterprise Name"
               value={formData.company || ""}
               onChange={(e) => setFormData({ ...formData, company: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
@@ -178,6 +286,7 @@ export default function ShippingPage() {
             <label className="text-xs font-bold text-[#5a403c] uppercase">Email Address *</label>
             <input
               type="email"
+              placeholder="e.g. rahul@example.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className={`w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
@@ -196,16 +305,32 @@ export default function ShippingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="text-xs font-bold text-[#5a403c] uppercase">Mobile Number (India) *</label>
-            <input
-              type="tel"
-              maxLength={10}
-              placeholder="e.g. 9876543210"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className={`w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
-                errors.phone ? "border-rose-500 bg-rose-50/20" : "border-[#e3beb8]"
-              } focus:outline-none focus:border-[#8b0000]`}
-            />
+            <div className="flex items-center gap-1.5">
+              <input
+                type="tel"
+                maxLength={10}
+                placeholder="e.g. 9876543210"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className={`w-full px-3.5 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
+                  errors.phone ? "border-rose-500 bg-rose-50/20" : "border-[#e3beb8]"
+                } focus:outline-none focus:border-[#8b0000]`}
+              />
+              <button
+                type="button"
+                onClick={() => handleCheckCustomer(formData.phone || formData.email)}
+                disabled={isChecking}
+                className="px-3 py-2.5 bg-[#8b0000] hover:bg-[#a00000] active:scale-[0.98] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1 cursor-pointer disabled:opacity-60 shrink-0"
+                title="Check customer details from database"
+              >
+                {isChecking ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <UserCheck className="w-3.5 h-3.5" />
+                )}
+                <span>Check</span>
+              </button>
+            </div>
             {errors.phone && (
               <p className="text-[10px] font-semibold text-rose-600 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" /> {errors.phone}
@@ -217,7 +342,7 @@ export default function ShippingPage() {
             <label className="text-xs font-bold text-[#5a403c] uppercase">Street Address *</label>
             <input
               type="text"
-              placeholder="House/Building No., Street Name"
+              placeholder="House/Flat/Building No., Street Name, Area"
               value={formData.address1}
               onChange={(e) => setFormData({ ...formData, address1: e.target.value })}
               className={`w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
@@ -250,6 +375,7 @@ export default function ShippingPage() {
             <label className="text-xs font-bold text-[#5a403c] uppercase">City *</label>
             <input
               type="text"
+              placeholder="e.g. Pune"
               value={formData.city}
               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
               className={`w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
@@ -267,6 +393,7 @@ export default function ShippingPage() {
             <label className="text-xs font-bold text-[#5a403c] uppercase">State *</label>
             <input
               type="text"
+              placeholder="e.g. Maharashtra"
               value={formData.state}
               onChange={(e) => setFormData({ ...formData, state: e.target.value })}
               className={`w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
@@ -285,7 +412,7 @@ export default function ShippingPage() {
             <input
               type="text"
               maxLength={6}
-              placeholder="e.g. 400001"
+              placeholder="e.g. 411001"
               value={formData.postcode}
               onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
               className={`w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
@@ -305,31 +432,23 @@ export default function ShippingPage() {
               type="text"
               value={formData.country}
               onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-              className={`w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border ${
-                errors.country ? "border-rose-500 bg-rose-50/20" : "border-[#e3beb8]"
-              } focus:outline-none focus:border-[#8b0000]`}
+              className="w-full px-4 py-2.5 rounded-xl bg-gray-50 text-xs font-semibold border border-[#e3beb8] focus:outline-none text-[#261816]"
+              readOnly
             />
-            {errors.country && (
-              <p className="text-[10px] font-semibold text-rose-600 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> {errors.country}
-              </p>
-            )}
           </div>
         </div>
 
-        {/* GST Invoice for Business Purchases Section */}
-        <div className="pt-4 border-t border-[#ffe9e6] space-y-3">
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#fff8f6] border border-[#e3beb8]/60">
+        {/* GST Invoice Option */}
+        <div className="pt-4 border-t border-[#ffe9e6] space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#fff7f5] border border-[#f3d2cc]">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#ffe9e6] text-[#8b0000] flex items-center justify-center shrink-0">
-                <Receipt className="w-5 h-5" />
-              </div>
+              <Building2 className="w-5 h-5 text-[#8b0000]" />
               <div>
-                <span className="text-xs sm:text-sm font-bold text-[#261816] block">
-                  GST Invoice for Business Purchase
+                <span className="text-xs font-bold text-[#261816] block">
+                  Add GSTIN for Business Tax Invoice (Optional)
                 </span>
-                <span className="text-[11px] text-[#5a403c] font-medium block">
-                  Claim Input Tax Credit (ITC) with official tax invoice
+                <span className="text-[11px] text-[#5a403c]">
+                  Avail 18% Input Tax Credit (ITC) with valid corporate GST identification.
                 </span>
               </div>
             </div>
@@ -412,7 +531,7 @@ export default function ShippingPage() {
 
           <button
             type="submit"
-            className="px-8 py-3.5 bg-[#8b0000] text-white font-bold text-xs rounded-xl shadow-lg hover:bg-[#bc0000] transition-colors flex items-center gap-2"
+            className="px-8 py-3.5 bg-[#8b0000] text-white font-bold text-xs rounded-xl shadow-lg hover:bg-[#bc0000] transition-colors flex items-center gap-2 cursor-pointer"
           >
             <span>Proceed to Payment</span>
             <ArrowRight className="w-4 h-4" />

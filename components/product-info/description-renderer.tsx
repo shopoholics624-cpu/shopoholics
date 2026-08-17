@@ -8,6 +8,14 @@ interface DescriptionRendererProps {
 }
 
 /**
+ * Strips HTML tags to check for text content.
+ */
+function stripHtml(html: string): string {
+  if (!html) return "";
+  return html.replace(/<[^>]*>/g, "").trim();
+}
+
+/**
  * Sanitizes raw HTML content by removing dangerous tags like <script>, <iframe>, and event handlers.
  */
 function sanitizeHtml(html: string): string {
@@ -23,9 +31,15 @@ function sanitizeHtml(html: string): string {
 /**
  * Safe HTML Description Renderer for WooCommerce Product Descriptions.
  * Renders HTML tags (<p>, <ul>, <li>, <strong>, <h3>, <br>) cleanly without exposing raw code.
+ * If WooCommerce description is empty/null/undefined or contains no text, returns null.
  */
 export function DescriptionRenderer({ htmlContent, className }: DescriptionRendererProps) {
   if (!htmlContent || typeof htmlContent !== "string") {
+    return null;
+  }
+
+  const rawText = stripHtml(htmlContent);
+  if (!rawText || rawText === "No product description available.") {
     return null;
   }
 
@@ -49,6 +63,8 @@ export function DescriptionRenderer({ htmlContent, className }: DescriptionRende
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean);
+
+  if (paragraphs.length === 0) return null;
 
   return (
     <div

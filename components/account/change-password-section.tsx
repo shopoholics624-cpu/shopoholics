@@ -79,7 +79,7 @@ export function ChangePasswordSection() {
         </div>
         <div>
           <h2 className="text-lg font-extrabold text-[#261816]">Change Password</h2>
-          <p className="text-xs text-[#5a403c]">Update your WooCommerce customer account login password</p>
+          <p className="text-xs text-[#5a403c]">Update your account login password</p>
         </div>
       </div>
 

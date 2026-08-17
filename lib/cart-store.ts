@@ -43,7 +43,7 @@ export async function writeCartToFile(cartKey: string, items: any[]): Promise<vo
         items: cleanItems,
         updatedAt: Date.now(),
       },
-      { merge: true }
+      { merge: false }
     );
   } catch (err: any) {
     console.error(`[CartStore/Firestore] Write error for ${cartKey}:`, err.message);

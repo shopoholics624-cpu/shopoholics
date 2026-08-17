@@ -21,8 +21,8 @@ export function LaptopTemplate({ product, unitSystem }: LaptopTemplateProps) {
     return found ? found.value : null;
   };
 
-  const overview = (product.description && product.description.trim()) || (sInfo?.overview && sInfo.overview.trim()) || "No product description available.";
-  const keyFeatures = sInfo?.keyFeatures || product.features;
+  const overview = (product.description && product.description.trim()) || "";
+  const shortDescription = (product.shortDescription || product.short_description || "").trim();
 
   const displaySize = s.displaySize || getLegacySpec("Display Size") || getLegacySpec("Display");
   const displayResolution = s.displayResolution || getLegacySpec("Resolution");
@@ -45,14 +45,9 @@ export function LaptopTemplate({ product, unitSystem }: LaptopTemplateProps) {
     ? convertMeasurement(sInfo.weight.value, sInfo.weight.unit, unitSystem).label
     : getLegacySpec("Weight");
 
-  const whatsInTheBox = sInfo?.whatsInTheBox || [
-    `${product.title} Laptop`,
-    "High-Wattage Power Adapter & Charging Cable",
-    "Quick Setup Guide",
-    "Safety & Warranty Documentation",
-  ];
-
-  const warranty = sInfo?.warranty || "2-Year On-Site Manufacturer Warranty + Accidental Protection";
+  const specList = product.specs || [];
+  const whatsInTheBox = sInfo?.whatsInTheBox;
+  const warranty = sInfo?.warranty;
 
   return (
     <div className="space-y-10 text-[#261816]">
@@ -66,137 +61,64 @@ export function LaptopTemplate({ product, unitSystem }: LaptopTemplateProps) {
         </section>
       )}
 
-      {/* KEY FEATURES */}
-      {isValidValue(keyFeatures) && (
+      {/* KEY FEATURES (WooCommerce Short Description) */}
+      {isValidValue(shortDescription) && (
         <section className="space-y-3">
           <h2 className="text-sm sm:text-base font-black text-[#8b0000] uppercase tracking-wider">
             KEY FEATURES
           </h2>
-          <div className="p-4 rounded-2xl bg-white border border-[#e3beb8]/60 shadow-xs space-y-2.5">
-            {keyFeatures.map((feat, idx) => (
-              <div key={idx} className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-[#8b0000] shrink-0 mt-0.5" />
-                <span className="text-xs sm:text-sm font-semibold text-[#261816] leading-snug">{feat}</span>
-              </div>
-            ))}
+          <DescriptionRenderer htmlContent={shortDescription} />
+        </section>
+      )}
+
+      {/* TECHNICAL SPECIFICATIONS (All WooCommerce Attributes) */}
+      {((specList && specList.length > 0) || formattedDim || formattedWeight) && (
+        <section className="space-y-3">
+          <h2 className="text-sm sm:text-base font-black text-[#8b0000] uppercase tracking-wider">
+            TECHNICAL SPECIFICATIONS
+          </h2>
+
+          <div className="bg-white rounded-2xl border border-[#e3beb8]/60 shadow-xs overflow-hidden">
+            <SpecSectionHeader title="Product Attributes & Specifications" />
+            <div className="divide-y divide-[#e3beb8]/30">
+              {specList.map((item, idx) => (
+                <SpecRow key={idx} label={item.name} value={item.value} />
+              ))}
+              {formattedDim && <SpecRow label="Dimensions" value={formattedDim} />}
+              {formattedWeight && <SpecRow label="Weight" value={formattedWeight} />}
+            </div>
           </div>
         </section>
       )}
 
-      {/* SPECIFICATIONS (Single Unified Card Container) */}
-      <section className="space-y-3">
-        <h2 className="text-sm sm:text-base font-black text-[#8b0000] uppercase tracking-wider">
-          SPECIFICATIONS
-        </h2>
-
-        <div className="bg-white rounded-2xl border border-[#e3beb8]/60 shadow-xs overflow-hidden">
-          {/* Display */}
-          {(isValidValue(displaySize) || isValidValue(displayResolution) || isValidValue(refreshRate)) && (
-            <div>
-              <SpecSectionHeader title="Display" />
-              <div>
-                <SpecRow label="Screen Size" value={displaySize} />
-                <SpecRow label="Resolution" value={displayResolution} />
-                <SpecRow label="Refresh Rate" value={refreshRate} />
-              </div>
+      {/* BOX & WARRANTY */}
+      {(isValidValue(whatsInTheBox) || isValidValue(warranty)) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {isValidValue(whatsInTheBox) && (
+            <div className="p-4 rounded-2xl bg-[#faf8f8] border border-[#e3beb8]/50 space-y-2">
+              <h3 className="text-xs font-bold text-[#8b0000] uppercase tracking-wider flex items-center gap-1.5">
+                <Package className="w-4 h-4" /> WHAT&apos;S IN THE BOX
+              </h3>
+              <ul className="space-y-1.5 pl-1">
+                {whatsInTheBox!.map((item, idx) => (
+                  <li key={idx} className="text-xs font-medium text-[#5a403c] flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#8b0000]" /> {item}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
-          {/* Processor & Graphics */}
-          {(isValidValue(processor) || isValidValue(graphics)) && (
-            <div>
-              <SpecSectionHeader title="Processor & Graphics" />
-              <div>
-                <SpecRow label="Processor (CPU)" value={processor} />
-                <SpecRow label="Graphics Card (GPU)" value={graphics} />
-              </div>
-            </div>
-          )}
-
-          {/* Memory & Storage */}
-          {(isValidValue(memory) || isValidValue(storage) || isValidValue(os)) && (
-            <div>
-              <SpecSectionHeader title="Memory & Storage" />
-              <div>
-                <SpecRow label="RAM / Memory" value={memory} />
-                <SpecRow label="SSD Storage" value={storage} />
-                <SpecRow label="Operating System" value={os} />
-              </div>
-            </div>
-          )}
-
-          {/* Keyboard, Audio & Webcam */}
-          {(isValidValue(keyboardTrackpad) || isValidValue(audio) || isValidValue(webcam)) && (
-            <div>
-              <SpecSectionHeader title="Input, Audio & Camera" />
-              <div>
-                <SpecRow label="Keyboard & Trackpad" value={keyboardTrackpad} />
-                <SpecRow label="Acoustic Speakers" value={audio} />
-                <SpecRow label="Webcam" value={webcam} />
-              </div>
-            </div>
-          )}
-
-          {/* Ports & Connectivity */}
-          {(isValidValue(ports) || isValidValue(wireless)) && (
-            <div>
-              <SpecSectionHeader title="Ports & Wireless Connectivity" />
-              <div>
-                <SpecRow label="I/O Ports" value={ports} />
-                <SpecRow label="Wireless Standards" value={wireless} />
-              </div>
-            </div>
-          )}
-
-          {/* Battery & Power */}
-          {isValidValue(batteryCapacity) && (
-            <div>
-              <SpecSectionHeader title="Battery & Power" />
-              <div>
-                <SpecRow label="Battery Endurance" value={batteryCapacity} />
-              </div>
-            </div>
-          )}
-
-          {/* Dimensions & Weight */}
-          {(isValidValue(formattedDim) || isValidValue(formattedWeight)) && (
-            <div>
-              <SpecSectionHeader title="Dimensions & Weight" />
-              <div>
-                <SpecRow label="Chassis Dimensions" value={formattedDim} />
-                <SpecRow label="Weight" value={formattedWeight} />
-              </div>
+          {isValidValue(warranty) && (
+            <div className="p-4 rounded-2xl bg-[#faf8f8] border border-[#e3beb8]/50 space-y-2">
+              <h3 className="text-xs font-bold text-[#8b0000] uppercase tracking-wider flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4" /> WARRANTY & COVERAGE
+              </h3>
+              <p className="text-xs font-medium text-[#5a403c] leading-relaxed">{warranty}</p>
             </div>
           )}
         </div>
-      </section>
-
-      {/* BOX & WARRANTY */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-        {isValidValue(whatsInTheBox) && (
-          <div className="p-4 rounded-2xl bg-[#faf8f8] border border-[#e3beb8]/50 space-y-2">
-            <h3 className="text-xs font-bold text-[#8b0000] uppercase tracking-wider flex items-center gap-1.5">
-              <Package className="w-4 h-4" /> WHAT&apos;S IN THE BOX
-            </h3>
-            <ul className="space-y-1.5 pl-1">
-              {whatsInTheBox.map((item, idx) => (
-                <li key={idx} className="text-xs font-medium text-[#5a403c] flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#8b0000]" /> {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {isValidValue(warranty) && (
-          <div className="p-4 rounded-2xl bg-[#faf8f8] border border-[#e3beb8]/50 space-y-2">
-            <h3 className="text-xs font-bold text-[#8b0000] uppercase tracking-wider flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4" /> WARRANTY & COVERAGE
-            </h3>
-            <p className="text-xs font-medium text-[#5a403c] leading-relaxed">{warranty}</p>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }

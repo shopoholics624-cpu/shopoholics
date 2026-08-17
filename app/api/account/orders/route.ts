@@ -73,6 +73,7 @@ export async function GET() {
             quantity: item.quantity,
             subtotal: parseFloat(item.subtotal || "0"),
             total: parseFloat(item.total || "0"),
+            image: item.image?.src || item.product_data?.images?.[0]?.src || "",
           }))
         : [],
     }));

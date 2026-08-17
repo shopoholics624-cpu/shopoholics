@@ -170,24 +170,37 @@ export default function OrderDetailPage({
               <div className="divide-y divide-[#ffe9e6]">
                 {order.lineItems.map((item) => (
                   <div key={item.id} className="py-4 first:pt-0 last:pb-0 flex items-start justify-between gap-4">
-                    <div className="space-y-1">
-                      <h4 className="font-extrabold text-sm text-[#261816]">{item.name}</h4>
-                      {item.sku && (
-                        <p className="text-[10px] text-[#8e706b] font-mono">SKU: {item.sku}</p>
-                      )}
-                      {Array.isArray(item.metaData) && item.metaData.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 pt-1">
-                          {item.metaData.map((m: any, idx: number) => (
-                            <span
-                              key={idx}
-                              className="text-[10px] bg-[#faf5f4] text-[#5a403c] px-2 py-0.5 rounded border border-[#e3beb8]"
-                            >
-                              {m.key}: {m.value}
-                            </span>
-                          ))}
+                    <div className="flex items-start gap-3.5">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-14 h-14 object-cover rounded-xl border border-[#e3beb8] bg-[#faf5f4] shrink-0"
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-xl bg-[#faf5f4] border border-[#e3beb8] flex items-center justify-center text-[#8e706b] shrink-0">
+                          <Package className="w-6 h-6 opacity-40" />
                         </div>
                       )}
-                      <p className="text-xs text-[#8e706b]">Quantity: {item.quantity}</p>
+                      <div className="space-y-1">
+                        <h4 className="font-extrabold text-sm text-[#261816]">{item.name}</h4>
+                        {item.sku && (
+                          <p className="text-[10px] text-[#8e706b] font-mono">SKU: {item.sku}</p>
+                        )}
+                        {Array.isArray(item.metaData) && item.metaData.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {item.metaData.map((m: any, idx: number) => (
+                              <span
+                                key={idx}
+                                className="text-[10px] bg-[#faf5f4] text-[#5a403c] px-2 py-0.5 rounded border border-[#e3beb8]"
+                              >
+                                {m.key}: {m.value}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-xs text-[#8e706b]">Quantity: {item.quantity}</p>
+                      </div>
                     </div>
 
                     <div className="text-right shrink-0">

@@ -51,6 +51,27 @@ function stripHtml(html: string): string {
 }
 
 /**
+ * Formats reviewer name safely, stripping any email domain to prevent exposing customer emails.
+ */
+export function formatReviewerName(rawName?: string): string {
+  if (!rawName || typeof rawName !== "string") return "Verified Customer";
+  let trimmed = rawName.trim();
+  if (!trimmed) return "Verified Customer";
+
+  if (trimmed.includes("@")) {
+    trimmed = trimmed.split("@")[0].trim();
+  }
+
+  // Extract First Name if full name is provided (e.g. "Shravan Yeole" -> "Shravan")
+  if (trimmed.includes(" ")) {
+    trimmed = trimmed.split(" ")[0].trim();
+  }
+
+  if (!trimmed) return "Verified Customer";
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
+/**
  * Normalizes raw WooCommerce attribute slugs into clean human-readable labels.
  */
 export function normalizeAttributeName(rawName: string): string {
@@ -62,7 +83,8 @@ export function normalizeAttributeName(rawName: string): string {
  */
 export function transformWooProductToProduct(
   woo: WooProduct,
-  rawVariations?: WooProductVariation[]
+  rawVariations?: WooProductVariation[],
+  reviewsSummaryMap?: Map<string, { rating: number; reviewCount: number }>
 ): Product {
   const regularPrice = parseFloat(woo.regular_price || woo.price || "0");
   const salePrice = parseFloat(woo.sale_price || "0");
@@ -108,30 +130,9 @@ export function transformWooProductToProduct(
   const images = woo.images?.length > 0 ? woo.images.map((img) => img.src) : [fallbackImage];
   const featuredImage = images[0] || fallbackImage;
 
-  // Extract raw WooCommerce description and short_description
+  // Extract raw WooCommerce description and short_description independently
   const wooDescription = (woo.description || "").trim();
   const wooShortDescription = (woo.short_description || "").trim();
-
-  // Strict fallback policy: description -> short_description -> "No product description available."
-  const rawDescriptionHtml = wooDescription
-    ? wooDescription
-    : wooShortDescription
-    ? wooShortDescription
-    : "No product description available.";
-
-  const rawDescriptionText = stripHtml(rawDescriptionHtml);
-
-  const features = rawDescriptionText
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 5 && line !== "No product description available.")
-    .slice(0, 5);
-
-  if (features.length === 0) {
-    features.push(`${woo.name} - Official Specifications`);
-    features.push("100% Genuine Certified Hardware");
-    features.push("Manufacturer Warranty Included");
-  }
 
   // Dictionary of all attributes for structured spec mapping
   const specMap: Record<string, string> = {};
@@ -143,20 +144,52 @@ export function transformWooProductToProduct(
     specMap[attr.name.toLowerCase()] = val;
   });
 
-  // Specifications from WooCommerce attributes
-  const specs = (woo.attributes || []).map((attr) => ({
+  // WooCommerce Product Attributes Classification (Strict WooCommerce "variation" Flag Logic)
+  // Used for variations = ON (attr.variation === true)  -> Variation Selection beside product images
+  // Used for variations = OFF (attr.variation === false) -> Technical Specifications section below
+
+  // 1. Variation Attributes (Used for variations = ON)
+  const variationAttributes = (woo.attributes || []).filter(
+    (attr) => attr.options && attr.options.length > 0 && Boolean(attr.variation) === true
+  );
+
+  const attributeGroups = variationAttributes.map((attr) => ({
     name: normalizeAttributeName(attr.name),
-    value: attr.options.join(", "),
-    category: "Performance" as const,
+    options: attr.options,
   }));
 
-  // Attribute Groups for multi-attribute variation selection UI
-  const attributeGroups = (woo.attributes || [])
-    .filter((attr) => attr.options && attr.options.length > 0)
-    .map((attr) => ({
-      name: attr.name,
-      options: attr.options,
-    }));
+  // Track variation attribute names to prevent duplicates in Technical Specifications
+  const variationAttrNames = new Set<string>();
+  variationAttributes.forEach((attr) => {
+    variationAttrNames.add(normalizeAttributeName(attr.name).toLowerCase().trim());
+    variationAttrNames.add(attr.name.toLowerCase().trim());
+  });
+
+  // 2. Non-Variation Attributes (Used for variations = OFF) -> Technical Specifications below
+  const specNameSet = new Set<string>();
+  const specs: Array<{ name: string; value: string; category: "Performance" }> = [];
+
+  (woo.attributes || []).forEach((attr) => {
+    if (!attr.options || attr.options.length === 0) return;
+    const normName = normalizeAttributeName(attr.name);
+    const lowerNorm = normName.toLowerCase().trim();
+    const lowerRaw = attr.name.toLowerCase().trim();
+
+    // Skip variation attributes (they are shown beside product images, not repeated below)
+    if (Boolean(attr.variation) === true || variationAttrNames.has(lowerNorm) || variationAttrNames.has(lowerRaw)) {
+      return;
+    }
+
+    // Skip duplicates within specs
+    if (specNameSet.has(lowerNorm)) return;
+    specNameSet.add(lowerNorm);
+
+    specs.push({
+      name: normName,
+      value: attr.options.join(", "),
+      category: "Performance",
+    });
+  });
 
   // Build variants from raw WooCommerce variations if provided
   let variants: ProductVariant[] = [];
@@ -246,9 +279,8 @@ export function transformWooProductToProduct(
   const parsedHeight = parseFloat(woo.dimensions?.height || "0");
 
   const structuredInfo: ProductStructuredInfo = {
-    overview: rawDescriptionHtml,
-    keyFeatures: features,
-    warranty: "2-Year Concierge Hardware Warranty",
+    overview: wooDescription,
+    keyFeatures: [],
     weight: parsedWeight > 0 ? { value: parsedWeight, unit: "kg" } : undefined,
     dimensions:
       parsedLength > 0 || parsedWidth > 0 || parsedHeight > 0
@@ -297,7 +329,20 @@ export function transformWooProductToProduct(
       slug: "all",
     };
 
-  const ratingNum = parseFloat(woo.average_rating || "4.8");
+  const pidStr = String(woo.id);
+  let ratingNum = 0;
+  let countNum = 0;
+
+  if (reviewsSummaryMap && reviewsSummaryMap.has(pidStr)) {
+    const summary = reviewsSummaryMap.get(pidStr)!;
+    ratingNum = summary.rating;
+    countNum = summary.reviewCount;
+  } else {
+    const rawRating = parseFloat(woo.average_rating || "0");
+    ratingNum = isNaN(rawRating) ? 0 : rawRating;
+    const rawCount = typeof woo.rating_count === "number" ? woo.rating_count : parseInt(String(woo.rating_count || "0"), 10) || 0;
+    countNum = ratingNum > 0 && rawCount === 0 ? 1 : rawCount;
+  }
 
   return {
     id: String(woo.id),
@@ -316,8 +361,8 @@ export function transformWooProductToProduct(
     lifestyle: ["work", "travel"] as LifestyleType[],
     price: currentPrice,
     originalPrice: regularPrice > currentPrice ? regularPrice : undefined,
-    rating: isNaN(ratingNum) || ratingNum === 0 ? 4.8 : ratingNum,
-    reviewCount: woo.rating_count || 12,
+    rating: ratingNum,
+    reviewCount: countNum,
     badge: woo.featured ? "FLAGSHIP" : woo.total_sales > 10 ? "BEST SELLER" : undefined,
     isFeatured: woo.featured || false,
     isTrending: woo.total_sales > 5,
@@ -328,8 +373,10 @@ export function transformWooProductToProduct(
     expressDelivery: true,
     featuredImage,
     images,
-    description: rawDescriptionHtml,
-    features,
+    description: wooDescription,
+    shortDescription: wooShortDescription,
+    short_description: wooShortDescription,
+    features: [],
     variants,
     attributeGroups: attributeGroups.length > 0 ? attributeGroups : undefined,
     specs,
@@ -361,8 +408,12 @@ export async function getWooProducts(params?: WooProductQueryParams): Promise<{
 
   const query = new URLSearchParams();
   if (params?.page) query.append("page", String(params.page));
-  if (params?.per_page) query.append("per_page", String(params.per_page));
-  if (params?.search) query.append("search", params.search);
+  // When searching, fetch up to 100 real products from store to allow multi-faceted scoring
+  if (params?.search && params.search.trim()) {
+    query.append("per_page", "100");
+  } else if (params?.per_page) {
+    query.append("per_page", String(params.per_page));
+  }
 
   if (params?.category && params.category !== "all") {
     const catStr = params.category.trim();
@@ -394,14 +445,7 @@ export async function getWooProducts(params?: WooProductQueryParams): Promise<{
       );
 
       if (foundCat) {
-        console.log(
-          `[Category Debug] Requested category: "${params.category}" -> Resolved WooCommerce Category ID: ${foundCat.id} (${foundCat.name})`
-        );
         query.append("category", String(foundCat.id));
-      } else {
-        console.warn(
-          `[Category Debug] Requested category: "${params.category}" could not be resolved to a WooCommerce Category ID.`
-        );
       }
     }
   }
@@ -422,14 +466,7 @@ export async function getWooProducts(params?: WooProductQueryParams): Promise<{
       );
 
       if (foundBrand) {
-        console.log(
-          `[Brand Debug] Requested brand: "${params.brand}" -> Resolved WooCommerce Brand ID: ${foundBrand.id} (${foundBrand.name})`
-        );
         query.append("brand", String(foundBrand.id));
-      } else {
-        console.warn(
-          `[Brand Debug] Requested brand: "${params.brand}" could not be resolved to a WooCommerce Brand ID.`
-        );
       }
     }
   }
@@ -449,7 +486,7 @@ export async function getWooProducts(params?: WooProductQueryParams): Promise<{
         Authorization: creds.authHeader,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
 
     if (!res.ok) {
@@ -457,22 +494,133 @@ export async function getWooProducts(params?: WooProductQueryParams): Promise<{
       return { products: [], total: 0, totalPages: 0, isMockData: true };
     }
 
-    const total = parseInt(res.headers.get("X-WP-Total") || "0", 10);
-    const totalPages = parseInt(res.headers.get("X-WP-TotalPages") || "0", 10);
     const rawWooProducts: WooProduct[] = await res.json();
 
-    const normalizedProducts = rawWooProducts.map((p) => transformWooProductToProduct(p));
+    // Apply intelligent multi-faceted relevance scoring when search query is present
+    let finalRawProducts = rawWooProducts;
+    if (params?.search && params.search.trim()) {
+      finalRawProducts = scoreAndRankWooProducts(rawWooProducts, params.search);
+    }
+
+    const reviewsMap = await getWooApprovedReviewsSummaryMap();
+    const normalizedProducts = finalRawProducts.map((p) => transformWooProductToProduct(p, undefined, reviewsMap));
 
     return {
       products: normalizedProducts,
-      total: total || normalizedProducts.length,
-      totalPages: totalPages || 1,
+      total: normalizedProducts.length,
+      totalPages: 1,
       isMockData: false,
     };
   } catch (error) {
     console.error("[WooCommerce Service] Request failed:", error instanceof Error ? error.message : error);
     return { products: [], total: 0, totalPages: 0, isMockData: true };
   }
+}
+
+/**
+ * Intelligent Multi-Faceted Relevance Scoring for WooCommerce Products
+ * Matches across:
+ * - Product Title (Exact match, Prefix match, Word boundaries, Substring)
+ * - Categories (Name & Slug match, e.g. "head" -> "Headphones & Earphones", "lap" -> "Laptops", "watch" -> "Smart Watches", "phone" -> "Smartphones / Mobile Phones")
+ * - Product Tags (e.g. "headphone", "earbuds", "cellphone", "photoshop", "magsafe")
+ * - Brand & Attributes (e.g. "Apple", "Samsung", "Phonokart", "Wireless", "ANC", "10000mAh")
+ * - Short description and Specifications
+ *
+ * Ranks closest matches first, followed by broader related matches.
+ */
+export function scoreAndRankWooProducts(
+  products: WooProduct[],
+  searchQuery: string
+): WooProduct[] {
+  const cleanQuery = searchQuery.trim().toLowerCase();
+  if (!cleanQuery) return products;
+
+  const tokens = cleanQuery.split(/\s+/).filter(Boolean);
+
+  const scored = products.map((p) => {
+    const title = decodeHtmlEntities(p.name || "").toLowerCase();
+    const desc = decodeHtmlEntities(
+      (p.description || "") + " " + (p.short_description || "")
+    ).toLowerCase();
+    const categories = (p.categories || []).map((c) =>
+      (decodeHtmlEntities(c.name || "") + " " + (c.slug || "")).toLowerCase()
+    );
+    const tags = (p.tags || []).map((t) =>
+      decodeHtmlEntities(t.name || "").toLowerCase()
+    );
+    const attributes = (p.attributes || []).map((a) =>
+      [
+        decodeHtmlEntities(a.name || "").toLowerCase(),
+        ...(a.options || []).map((o) => decodeHtmlEntities(o).toLowerCase()),
+      ].join(" ")
+    );
+
+    let totalScore = 0;
+    let matchedTokens = 0;
+
+    for (const token of tokens) {
+      let tokenScore = 0;
+
+      // 1. Exact title match or title starts with token (Highest relevance)
+      if (title === token) {
+        tokenScore += 160;
+      } else if (title.startsWith(token)) {
+        tokenScore += 120;
+      } else if (title.includes(token)) {
+        const words = title.split(/[\s\-_\/]+/);
+        if (words.some((w) => w === token || w.startsWith(token))) {
+          tokenScore += 90;
+        } else {
+          tokenScore += 70;
+        }
+      }
+
+      // 2. Category matching (e.g. "head" matches "Headphones & Earphones", "lap" matches "Laptops", "watch" matches "Smart Watches")
+      for (const cat of categories) {
+        if (cat.includes(token)) {
+          tokenScore += 55;
+          break;
+        }
+      }
+
+      // 3. Tag matching (e.g. "head" matches "headphone", "ear" matches "earbuds")
+      for (const tag of tags) {
+        if (tag.includes(token)) {
+          tokenScore += 45;
+          break;
+        }
+      }
+
+      // 4. Attribute / Brand matching (e.g. "wireless", "magsafe", "10000mah")
+      for (const attr of attributes) {
+        if (attr.includes(token)) {
+          tokenScore += 35;
+          break;
+        }
+      }
+
+      // 5. Description matching
+      if (desc.includes(token)) {
+        tokenScore += 20;
+      }
+
+      if (tokenScore > 0) {
+        matchedTokens++;
+        totalScore += tokenScore;
+      }
+    }
+
+    if (tokens.length > 1 && matchedTokens < tokens.length) {
+      totalScore = Math.floor(totalScore * (matchedTokens / tokens.length) * 0.5);
+    }
+
+    return { product: p, score: totalScore };
+  });
+
+  return scored
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((item) => item.product);
 }
 
 /**
@@ -489,7 +637,7 @@ export async function getWooProductVariations(productId: string | number): Promi
         Authorization: creds.authHeader,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
 
     if (!res.ok) return [];
@@ -519,7 +667,7 @@ export async function getWooVariationById(
           Authorization: creds.authHeader,
           "Content-Type": "application/json",
         },
-        next: { revalidate: 60 },
+        cache: "no-store",
       }
     );
 
@@ -548,7 +696,7 @@ export async function getWooProductBySlug(slug: string): Promise<Product | null>
         Authorization: creds.authHeader,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
 
     if (!res.ok) return null;
@@ -557,14 +705,15 @@ export async function getWooProductBySlug(slug: string): Promise<Product | null>
     if (!rawWooList || rawWooList.length === 0) return null;
 
     const rawWooProduct = rawWooList[0];
+    const reviewsMap = await getWooApprovedReviewsSummaryMap();
 
     // If product is variable, fetch its variations
     if (rawWooProduct.type === "variable" && rawWooProduct.id) {
       const rawVariations = await getWooProductVariations(rawWooProduct.id);
-      return transformWooProductToProduct(rawWooProduct, rawVariations);
+      return transformWooProductToProduct(rawWooProduct, rawVariations, reviewsMap);
     }
 
-    return transformWooProductToProduct(rawWooProduct);
+    return transformWooProductToProduct(rawWooProduct, undefined, reviewsMap);
   } catch (error) {
     console.error("[WooCommerce Service] Failed to fetch product by slug:", error instanceof Error ? error.message : error);
     return null;
@@ -585,18 +734,19 @@ export async function getWooProductById(id: string | number): Promise<Product | 
         Authorization: creds.authHeader,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
 
     if (!res.ok) return null;
 
     const rawWooProduct: WooProduct = await res.json();
+    const reviewsMap = await getWooApprovedReviewsSummaryMap();
     if (rawWooProduct.type === "variable") {
       const rawVariations = await getWooProductVariations(rawWooProduct.id);
-      return transformWooProductToProduct(rawWooProduct, rawVariations);
+      return transformWooProductToProduct(rawWooProduct, rawVariations, reviewsMap);
     }
 
-    return transformWooProductToProduct(rawWooProduct);
+    return transformWooProductToProduct(rawWooProduct, undefined, reviewsMap);
   } catch (error) {
     console.error("[WooCommerce Service] Failed to fetch product by ID:", error instanceof Error ? error.message : error);
     return null;
@@ -617,7 +767,7 @@ export async function getWooCategories(): Promise<WooCategory[]> {
         Authorization: creds.authHeader,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
 
     if (!res.ok) return [];
@@ -695,7 +845,7 @@ export async function getWooBrands(): Promise<WooBrand[]> {
         Authorization: creds.authHeader,
         "Content-Type": "application/json",
       },
-      next: { revalidate: 60 },
+      cache: "no-store",
     });
 
     if (!res.ok) return [];
@@ -819,6 +969,251 @@ export async function updateWooCustomerPassword(
   } catch (error) {
     console.error("[WooCommerce Service] Failed to update customer password:", error instanceof Error ? error.message : error);
     return { success: false, message: "Unable to connect to WooCommerce service." };
+  }
+}
+
+export interface WooReview {
+  id: number;
+  date_created: string;
+  reviewer: string;
+  reviewer_email?: string;
+  review: string;
+  rating: number;
+  verified: boolean;
+}
+
+/**
+ * Fetches WooCommerce customers and builds a map of email/username -> first_name
+ */
+export async function getWooCustomerFirstNameMap(): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  const creds = getWooCommerceCredentials();
+  if (!creds) return map;
+
+  try {
+    const res = await fetch(`${creds.baseUrl}/wp-json/wc/v3/customers?per_page=100`, {
+      method: "GET",
+      headers: {
+        Authorization: creds.authHeader,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!res.ok) return map;
+    const customers: any[] = await res.json();
+    if (!Array.isArray(customers)) return map;
+
+    for (const c of customers) {
+      const firstName = (c.first_name || "").trim();
+      if (!firstName) continue;
+
+      const formattedFirst = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+
+      if (c.email) {
+        map.set(c.email.toLowerCase().trim(), formattedFirst);
+        const localPart = c.email.split("@")[0].toLowerCase().trim();
+        if (localPart) map.set(localPart, formattedFirst);
+      }
+
+      if (c.username) {
+        map.set(c.username.toLowerCase().trim(), formattedFirst);
+        if (c.username.includes("@")) {
+          const uLocal = c.username.split("@")[0].toLowerCase().trim();
+          if (uLocal) map.set(uLocal, formattedFirst);
+        }
+      }
+    }
+    return map;
+  } catch (err) {
+    console.warn("[WooCommerce Service] Failed to fetch customer first name map:", err);
+    return map;
+  }
+}
+
+/**
+ * Fetches WooCommerce product reviews for a specific product (Server-side only).
+ */
+export async function getWooProductReviews(productId: string | number): Promise<WooReview[]> {
+  const creds = getWooCommerceCredentials();
+  if (!creds || !productId) return [];
+
+  try {
+    const cleanId = String(productId).replace(/\D/g, "");
+    if (!cleanId) return [];
+
+    const [res, customerMap] = await Promise.all([
+      fetch(
+        `${creds.baseUrl}/wp-json/wc/v3/products/reviews?product=${cleanId}&status=approved&per_page=20`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: creds.authHeader,
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+          signal: AbortSignal.timeout(5000),
+        }
+      ),
+      getWooCustomerFirstNameMap(),
+    ]);
+
+    if (!res.ok) return [];
+    const rawReviews: any[] = await res.json();
+    if (!Array.isArray(rawReviews)) return [];
+
+    return rawReviews.map((r: any) => {
+      const rawEmail = (r.reviewer_email || r.reviewer || "").toLowerCase().trim();
+      const localPart = rawEmail.includes("@") ? rawEmail.split("@")[0].trim() : rawEmail;
+
+      let matchedFirstName = customerMap.get(rawEmail) || customerMap.get(localPart);
+
+      // If no customer map hit, fallback to formatReviewerName
+      if (!matchedFirstName) {
+        matchedFirstName = formatReviewerName(r.reviewer);
+      }
+
+      return {
+        id: r.id,
+        date_created: r.date_created || r.date_created_gmt || new Date().toISOString(),
+        reviewer: matchedFirstName,
+        review: r.review || "",
+        rating: typeof r.rating === "number" ? r.rating : parseInt(r.rating || "5", 10),
+        verified: Boolean(r.verified),
+      };
+    });
+  } catch (error) {
+    console.warn(`[WooCommerce Service] Failed to fetch reviews for product ${productId}:`, error);
+    return [];
+  }
+}
+
+/**
+ * Fetches approved review summaries across products in a single call to map actual ratings/counts.
+ */
+export async function getWooApprovedReviewsSummaryMap(): Promise<Map<string, { rating: number; reviewCount: number }>> {
+  const map = new Map<string, { rating: number; reviewCount: number }>();
+  const creds = getWooCommerceCredentials();
+  if (!creds) return map;
+
+  try {
+    const res = await fetch(
+      `${creds.baseUrl}/wp-json/wc/v3/products/reviews?status=approved&per_page=100`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: creds.authHeader,
+          "Content-Type": "application/json",
+        },
+        cache: "no-store",
+        signal: AbortSignal.timeout(5000),
+      }
+    );
+
+    if (!res.ok) return map;
+    const rawReviews: any[] = await res.json();
+    if (!Array.isArray(rawReviews)) return map;
+
+    const stats = new Map<string, { sum: number; count: number }>();
+    for (const r of rawReviews) {
+      if (!r.product_id) continue;
+      const pid = String(r.product_id);
+      const rating = typeof r.rating === "number" ? r.rating : parseInt(r.rating || "5", 10);
+      const current = stats.get(pid) || { sum: 0, count: 0 };
+      stats.set(pid, { sum: current.sum + rating, count: current.count + 1 });
+    }
+
+    stats.forEach((val, pid) => {
+      if (val.count > 0) {
+        map.set(pid, {
+          rating: val.sum / val.count,
+          reviewCount: val.count,
+        });
+      }
+    });
+
+    return map;
+  } catch (error) {
+    console.warn("[WooCommerce Service] Failed to fetch reviews summary map:", error);
+    return map;
+  }
+}
+
+export interface CreateWooReviewInput {
+  productId: number;
+  rating: number;
+  review: string;
+  reviewer: string;
+  reviewerEmail: string;
+}
+
+export interface CreateWooReviewResult {
+  success: boolean;
+  message: string;
+  review?: WooReview;
+  status?: string;
+}
+
+/**
+ * Posts a new WooCommerce product review (Server-side only).
+ */
+export async function createWooProductReview(
+  input: CreateWooReviewInput
+): Promise<CreateWooReviewResult> {
+  const creds = getWooCommerceCredentials();
+  if (!creds || !input.productId) {
+    return { success: false, message: "WooCommerce API service unavailable." };
+  }
+
+  try {
+    const res = await fetch(`${creds.baseUrl}/wp-json/wc/v3/products/reviews`, {
+      method: "POST",
+      headers: {
+        Authorization: creds.authHeader,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        product_id: input.productId,
+        rating: input.rating,
+        review: input.review,
+        reviewer: input.reviewer,
+        reviewer_email: input.reviewerEmail,
+      }),
+      cache: "no-store",
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      return {
+        success: false,
+        message: data.message || `WooCommerce API error (Status ${res.status}).`,
+      };
+    }
+
+    const status = data.status || "approved";
+    const isApproved = status === "approved";
+
+    return {
+      success: true,
+      status,
+      message: isApproved
+        ? "Your review has been submitted successfully."
+        : "Your review has been submitted and is awaiting approval.",
+      review: {
+        id: data.id || Date.now(),
+        date_created: data.date_created || new Date().toISOString(),
+        reviewer: data.reviewer || input.reviewer,
+        reviewer_email: data.reviewer_email || input.reviewerEmail,
+        review: data.review || input.review,
+        rating: typeof data.rating === "number" ? data.rating : input.rating,
+        verified: Boolean(data.verified),
+      },
+    };
+  } catch (error: any) {
+    console.error("[WooCommerce Service] Failed to create product review:", error);
+    return { success: false, message: "Unable to connect to WooCommerce review service." };
   }
 }
 

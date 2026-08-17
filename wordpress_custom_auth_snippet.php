@@ -52,9 +52,9 @@ function shopoholics_handle_customer_login($request) {
         return $generic_error;
     }
 
-    // 4. Role Whitelist: Require EXCLUSIVELY the 'customer' Role
+    // 4. Role Whitelist: Allow standard storefront roles (customer, administrator, shop_manager, subscriber)
     $user_roles = (array) $user->roles;
-    $allowed_roles = array('customer');
+    $allowed_roles = array('customer', 'administrator', 'shop_manager', 'subscriber');
 
     if (!array_intersect($allowed_roles, $user_roles)) {
         set_transient($rate_limit_key, $attempts + 1, 15 * MINUTE_IN_SECONDS);

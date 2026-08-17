@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DemoLink as Link } from "@/components/demo/demo-link";
-import { Package, ArrowLeft, Loader2, AlertCircle, ChevronRight, ExternalLink } from "lucide-react";
+import { Package, ArrowLeft, Loader2, AlertCircle, ChevronRight, CreditCard, ShieldCheck } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 interface OrderItem {
@@ -11,6 +11,7 @@ interface OrderItem {
   name: string;
   quantity: number;
   total: number;
+  image?: string;
 }
 
 interface CustomerOrder {
@@ -36,7 +37,7 @@ export default function CustomerOrdersPage() {
 
     async function fetchOrders() {
       try {
-        const res = await fetch("/api/account/orders");
+        const res = await fetch("/api/account/orders", { cache: "no-store" });
         if (!res.ok) {
           if (res.status === 401) {
             router.push("/login");
@@ -92,7 +93,7 @@ export default function CustomerOrdersPage() {
                 Order History
               </h1>
               <p className="text-xs sm:text-sm text-[#5a403c]">
-                View & track all WooCommerce orders associated with your customer account.
+                View & track all verified WooCommerce orders associated with your customer account.
               </p>
             </div>
             <div className="text-xs font-bold text-[#8b0000] bg-[#ffe9e6] px-3.5 py-1.5 rounded-full border border-[#e3beb8] self-start sm:self-auto">
@@ -116,7 +117,7 @@ export default function CustomerOrdersPage() {
             <div className="space-y-1">
               <h3 className="text-lg font-bold text-[#261816]">No WooCommerce Orders Found</h3>
               <p className="text-xs text-[#5a403c]">
-                You haven&apos;t placed any orders yet. When you complete checkout while signed in, your orders will appear here.
+                You haven&apos;t placed any orders yet. When you complete checkout via Razorpay, your orders will appear here automatically.
               </p>
             </div>
             <Link
@@ -151,42 +152,61 @@ export default function CustomerOrdersPage() {
                         {order.status}
                       </span>
                     </div>
-                    <p className="text-xs text-[#8e706b] mt-0.5">
-                      Placed on {new Date(order.dateCreated).toLocaleDateString("en-IN", { dateStyle: "full" })}
-                    </p>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-[#8e706b]">
+                      <span>Placed on {new Date(order.dateCreated).toLocaleDateString("en-IN", { dateStyle: "full" })}</span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1 font-medium text-[#5a403c]">
+                        <CreditCard className="w-3.5 h-3.5 text-[#8b0000]" /> {order.paymentMethodTitle || "Razorpay Payment"}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-4 self-end sm:self-auto">
                     <div className="text-right">
-                      <span className="text-[10px] uppercase font-bold text-[#8e706b] block">Total</span>
+                      <span className="text-[10px] uppercase font-bold text-[#8e706b] block">Total Amount</span>
                       <span className="text-lg font-extrabold text-[#8b0000]">
                         {formatPrice(order.total)}
                       </span>
                     </div>
                     <Link
                       href={`/account/orders/${order.id}`}
-                      className="px-4 py-2.5 bg-[#8b0000] hover:bg-[#a00000] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5"
+                      className="px-4 py-2.5 bg-[#8b0000] hover:bg-[#a00000] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
                     >
-                      View Details <ChevronRight className="w-4 h-4" />
+                      <span>View Order</span>
+                      <ChevronRight className="w-4 h-4" />
                     </Link>
                   </div>
                 </div>
 
-                {/* Line Items Summary */}
+                {/* Line Items with Images and Quantities */}
                 <div className="space-y-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#8e706b] block">
-                    Ordered Products ({order.itemCount} items)
+                    Ordered Products ({order.itemCount} {order.itemCount === 1 ? "item" : "items"})
                   </span>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {order.lineItems.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center justify-between text-xs py-1 px-3 rounded-lg bg-[#faf5f4]"
+                        className="flex items-center justify-between text-xs py-2 px-3.5 rounded-xl bg-[#faf5f4] border border-[#f0deda]"
                       >
-                        <span className="font-semibold text-[#261816]">
-                          {item.name} <span className="text-[#8e706b] font-normal">x{item.quantity}</span>
-                        </span>
-                        <span className="font-bold text-[#8b0000]">
+                        <div className="flex items-center gap-3">
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-10 h-10 object-cover rounded-lg border border-[#e3beb8] bg-white shrink-0"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-white border border-[#e3beb8] flex items-center justify-center text-[#8e706b] shrink-0">
+                              <Package className="w-5 h-5 opacity-50" />
+                            </div>
+                          )}
+                          <div>
+                            <span className="font-bold text-[#261816] block">{item.name}</span>
+                            <span className="text-[11px] text-[#8e706b]">Quantity: {item.quantity}</span>
+                          </div>
+                        </div>
+                        <span className="font-bold text-[#8b0000] text-xs shrink-0">
                           {formatPrice(item.total)}
                         </span>
                       </div>

@@ -56,7 +56,7 @@ export default function HomePage() {
       {/* 6. Flagship Devices & Audio */}
       <section className="py-4 sm:py-6 lg:py-8 bg-white">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 border-b border-[#D4D3CD]/60 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-2">
             <div>
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[#1C1C1A] tracking-tight">
                 Flagship Devices & Audio

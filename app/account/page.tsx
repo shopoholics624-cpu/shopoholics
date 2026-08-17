@@ -42,7 +42,7 @@ export default function AccountDashboardPage() {
     async function loadAccountData() {
       try {
         // 1. Fetch authenticated customer identity
-        const meRes = await fetch("/api/auth/me");
+        const meRes = await fetch("/api/auth/me?full=true", { cache: "no-store" });
         if (!meRes.ok) {
           if (isMounted) router.push("/login");
           return;
@@ -142,6 +142,29 @@ export default function AccountDashboardPage() {
           >
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
+        </div>
+
+        {/* Admin Quick Action Banner */}
+        <div className="bg-gradient-to-r from-[#8b0000] to-[#590000] rounded-2xl p-5 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+              Admin Quick Access
+            </span>
+            <h3 className="text-base font-extrabold text-white mt-1">
+              Storefront & Homepage Management
+            </h3>
+            <p className="text-xs text-white/80 mt-0.5">
+              Manage Hero Banners, Top Announcement Ticker, and Promotional Deals in real time.
+            </p>
+          </div>
+
+          <Link
+            href="/admin/homepage"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-[#8b0000] hover:bg-[#fff0ee] font-black text-xs shadow-md transition-all shrink-0 self-start sm:self-auto"
+          >
+            <span>Open Admin Panel</span>
+            <ChevronRight className="w-4 h-4" />
+          </Link>
         </div>
 
         {/* Quick Navigation Cards */}

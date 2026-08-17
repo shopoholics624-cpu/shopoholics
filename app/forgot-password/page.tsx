@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
       }
 
       setSuccessMessage(
-        "If an account exists for this email address, password reset instructions have been dispatched by WooCommerce."
+        "If an account exists for this email address, password reset instructions have been dispatched."
       );
       setIsLoading(false);
     } catch (err) {
@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
               Reset Your Password
             </h1>
             <p className="text-xs text-slate-500 font-medium">
-              Enter your registered WooCommerce account email to receive reset instructions.
+              Enter your registered account email to receive reset instructions.
             </p>
           </div>
 

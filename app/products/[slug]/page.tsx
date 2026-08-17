@@ -1,3 +1,7 @@
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+export const revalidate = 0;
+
 import { Metadata } from "next";
 import { getWooProductBySlug, getWooProductById } from "@/lib/woocommerce";
 import { PRODUCTS } from "@/constants/products";

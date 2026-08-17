@@ -17,6 +17,8 @@ import {
   CheckCircle2,
   Receipt,
   AlertTriangle,
+  Loader2,
+  Sparkles,
 } from "lucide-react";
 
 export default function CartPage() {
@@ -29,11 +31,13 @@ export default function CartPage() {
     tax,
     shippingCost,
     discountTotal,
+    appliedOffer,
     total,
     itemCount,
     hasFreeGiftBundle,
     freeGiftCount,
     updatingItemIds,
+    deletingItemIds,
   } = useCart();
 
   const hasUnavailableItems = items.some(
@@ -232,10 +236,16 @@ export default function CartPage() {
 
                         <button
                           onClick={() => removeFromCart(item.id)}
-                          className="p-2 text-[#8e706b] hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                          title="Remove Item"
+                          disabled={Boolean(deletingItemIds?.[item.id])}
+                          className="p-2 text-[#8e706b] hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center min-w-[32px] min-h-[32px]"
+                          title={deletingItemIds?.[item.id] ? "Removing item..." : "Remove Item"}
+                          aria-label={deletingItemIds?.[item.id] ? "Removing item..." : "Remove Item"}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {deletingItemIds?.[item.id] ? (
+                            <Loader2 className="w-4 h-4 text-red-600 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -258,9 +268,29 @@ export default function CartPage() {
                 </div>
 
                 {discountTotal > 0 && (
-                  <div className="flex justify-between text-emerald-700 font-bold">
-                    <span>Bundle Discount</span>
-                    <span>-{formatPrice(discountTotal)}</span>
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1">
+                    <div className="flex items-center justify-between text-emerald-800 font-bold">
+                      <span className="flex items-center gap-1.5 text-xs font-extrabold">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>{appliedOffer?.title || "Special Offer Discount"}</span>
+                      </span>
+                      <span className="text-emerald-700 font-extrabold text-sm">
+                        -{formatPrice(discountTotal)}
+                      </span>
+                    </div>
+                    {appliedOffer && (
+                      <p className="text-[10px] text-emerald-700 font-medium">
+                        {appliedOffer.maxEligibleQuantity === 1
+                          ? `${appliedOffer.discountAmount}${appliedOffer.discountType === "percent" ? "%" : "₹"} OFF applied to 1 eligible item`
+                          : appliedOffer.maxEligibleQuantity && appliedOffer.maxEligibleQuantity > 1
+                          ? `Applied to ${appliedOffer.eligibleItemsCount} eligible item(s) (Max ${appliedOffer.maxEligibleQuantity} discounted)`
+                          : appliedOffer.applyTo === "category"
+                          ? `Applied to eligible items in category`
+                          : appliedOffer.applyTo === "products"
+                          ? `Applied to eligible items (${appliedOffer.eligibleItemsCount} item${appliedOffer.eligibleItemsCount === 1 ? "" : "s"})`
+                          : `Applied store-wide (${appliedOffer.discountAmount}${appliedOffer.discountType === "percent" ? "%" : "₹"} OFF)`}
+                      </p>
+                    )}
                   </div>
                 )}
 

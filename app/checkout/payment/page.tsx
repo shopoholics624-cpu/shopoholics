@@ -5,16 +5,15 @@ import { useDemo } from "@/hooks/use-demo";
 import { useRouter } from "next/navigation";
 import { formatPrice } from "@/lib/utils";
 import {
-  CreditCard,
   Lock,
   ArrowRight,
   Receipt,
   CheckCircle2,
   AlertCircle,
   XCircle,
-  FlaskConical,
-  RefreshCw,
   ShieldCheck,
+  Loader2,
+  Sparkles,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
@@ -26,14 +25,13 @@ declare global {
 
 export default function PaymentPage() {
   const router = useRouter();
-  const { shippingAddress, paymentDetails, setPaymentDetails, gstDetails, total, clearCart } = useCart();
+  const { shippingAddress, paymentDetails, gstDetails, total, clearCart } = useCart();
   const { isDemoMode, handleDemoAction } = useDemo();
 
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [createdOrder, setCreatedOrder] = useState<any | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [providerMode, setProviderMode] = useState<"development" | "razorpay">("development");
   const [paymentStatusNotice, setPaymentStatusNotice] = useState<{
     type: "success" | "error" | "warning";
     message: string;
@@ -41,15 +39,15 @@ export default function PaymentPage() {
 
   const pendingCreationRef = useRef(false);
 
-  // Load Razorpay JS SDK script dynamically if in Razorpay mode
+  // Load Razorpay JS SDK dynamically
   useEffect(() => {
-    if (providerMode === "razorpay" && !window.Razorpay) {
+    if (!window.Razorpay) {
       const script = document.createElement("script");
       script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.async = true;
       document.body.appendChild(script);
     }
-  }, [providerMode]);
+  }, []);
 
   // Initialize or fetch the pending WooCommerce order server-side without clearing cart
   useEffect(() => {
@@ -66,7 +64,7 @@ export default function PaymentPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             shippingAddress,
-            paymentDetails,
+            paymentDetails: { method: "razorpay" },
             gstDetails,
           }),
         });
@@ -75,7 +73,7 @@ export default function PaymentPage() {
         if (res.ok && data.success && data.order) {
           setCreatedOrder(data.order);
         } else {
-          setErrorMessage(data.message || "Failed to initialize WooCommerce checkout order.");
+          setErrorMessage(data.message || "Failed to initialize checkout order.");
         }
       } catch (err) {
         console.error("[PaymentPage Order Creation Error]:", err);
@@ -86,12 +84,17 @@ export default function PaymentPage() {
     }
 
     ensureOrderCreated();
-  }, [shippingAddress, paymentDetails, gstDetails, createdOrder]);
+  }, [shippingAddress, gstDetails, createdOrder]);
 
   // Handle Razorpay Payment Flow
   const handleRazorpayPayment = async () => {
     setErrorMessage(null);
     setPaymentStatusNotice(null);
+
+    if (isDemoMode) {
+      handleDemoAction({} as any);
+      return;
+    }
 
     let activeOrder = createdOrder;
 
@@ -101,7 +104,11 @@ export default function PaymentPage() {
         const createRes = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ shippingAddress, paymentDetails, gstDetails }),
+          body: JSON.stringify({
+            shippingAddress,
+            paymentDetails: { method: "razorpay" },
+            gstDetails,
+          }),
         });
         const createData = await createRes.json();
         if (createRes.ok && createData.success && createData.order) {
@@ -124,7 +131,7 @@ export default function PaymentPage() {
     setIsProcessingPayment(true);
 
     try {
-      // 1. Create Razorpay Payment Order Server-side
+      // 1. Create Razorpay Payment Order Server-side using authoritative WooCommerce amount
       const res = await fetch("/api/payment/razorpay/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -134,22 +141,14 @@ export default function PaymentPage() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        if (data.mode === "development") {
-          setProviderMode("development");
-          setPaymentStatusNotice({
-            type: "warning",
-            message: data.message || "Switching to Development Test Mode as Razorpay credentials are not yet set.",
-          });
-        } else {
-          setErrorMessage(data.message || "Failed to launch Razorpay payment order.");
-        }
+        setErrorMessage(data.message || "Failed to launch Razorpay payment order.");
         setIsProcessingPayment(false);
         return;
       }
 
       // Check if Razorpay JS SDK loaded
       if (typeof window.Razorpay !== "function") {
-        setErrorMessage("Razorpay Checkout SDK failed to load. Please check your internet connection.");
+        setErrorMessage("Razorpay Checkout SDK is loading. Please try clicking again in a few seconds.");
         setIsProcessingPayment(false);
         return;
       }
@@ -163,7 +162,7 @@ export default function PaymentPage() {
         description: `Order ${activeOrder.orderNumber}`,
         order_id: data.razorpayOrderId,
         prefill: {
-          name: `${shippingAddress.firstName} ${shippingAddress.lastName}`,
+          name: `${shippingAddress.firstName} ${shippingAddress.lastName}`.trim(),
           email: shippingAddress.email,
           contact: shippingAddress.phone,
         },
@@ -190,7 +189,7 @@ export default function PaymentPage() {
               const finalPaidOrder = {
                 ...activeOrder,
                 status: "processing",
-                paymentMethod: "Razorpay Secure Gateway",
+                paymentMethod: "Razorpay Secure Gateway (Test Mode)",
                 razorpayPaymentId: response.razorpay_payment_id,
                 paidAt: new Date().toISOString(),
               };
@@ -201,16 +200,17 @@ export default function PaymentPage() {
                 // ignore
               }
 
+              // Clear cart ONLY upon verified payment
               clearCart();
               router.push("/checkout/success");
             } else {
               setErrorMessage(
-                verifyData.message || "Razorpay payment signature verification failed. Cart remains intact."
+                verifyData.message || "Razorpay payment verification failed. Your cart remains intact."
               );
             }
           } catch (err) {
             console.error("[Razorpay Verify Callback Error]:", err);
-            setErrorMessage("Error verifying payment signature with server.");
+            setErrorMessage("Error verifying payment signature with server. Cart remains intact.");
           } finally {
             setIsProcessingPayment(false);
           }
@@ -220,7 +220,7 @@ export default function PaymentPage() {
             setIsProcessingPayment(false);
             setPaymentStatusNotice({
               type: "warning",
-              message: "Razorpay payment window closed. Your order and cart remain intact for retry.",
+              message: "Razorpay payment modal closed. Your cart and order remain intact.",
             });
           },
         },
@@ -235,134 +235,17 @@ export default function PaymentPage() {
     }
   };
 
-  // Execute Development Test Payment Simulation
-  const handleTestPaymentSimulation = async (result: "success" | "failed" | "cancelled") => {
-    setErrorMessage(null);
-    setPaymentStatusNotice(null);
-
-    if (isDemoMode) {
-      handleDemoAction({} as any);
-      return;
-    }
-
-    let activeOrder = createdOrder;
-
-    if (!activeOrder) {
-      setIsCreatingOrder(true);
-      try {
-        const createRes = await fetch("/api/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ shippingAddress, paymentDetails, gstDetails }),
-        });
-        const createData = await createRes.json();
-        if (createRes.ok && createData.success && createData.order) {
-          activeOrder = createData.order;
-          setCreatedOrder(activeOrder);
-        } else {
-          setErrorMessage(createData.message || "Failed to create order reference.");
-          setIsCreatingOrder(false);
-          return;
-        }
-      } catch (err) {
-        setErrorMessage("Connection error during order creation.");
-        setIsCreatingOrder(false);
-        return;
-      } finally {
-        setIsCreatingOrder(false);
-      }
-    }
-
-    setIsProcessingPayment(true);
-
-    try {
-      const res = await fetch("/api/payment/test", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: activeOrder.id,
-          result,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (result === "success" && data.success) {
-        const finalPaidOrder = {
-          ...activeOrder,
-          status: "processing",
-          paymentMethod: "Development Test Payment",
-          paidAt: new Date().toISOString(),
-        };
-
-        try {
-          localStorage.setItem("shopoholics_last_order", JSON.stringify(finalPaidOrder));
-        } catch {
-          // ignore
-        }
-
-        clearCart();
-        router.push("/checkout/success");
-      } else if (result === "failed") {
-        setPaymentStatusNotice({
-          type: "error",
-          message: data.message || "Development Test Payment Failed. Cart remains intact. You may retry.",
-        });
-      } else {
-        setPaymentStatusNotice({
-          type: "warning",
-          message: data.message || "Development Test Payment Cancelled. Cart remains intact. You may retry.",
-        });
-      }
-    } catch (err) {
-      console.error("[PaymentPage Test Payment Error]:", err);
-      setErrorMessage("Network error processing payment simulation. Please try again.");
-    } finally {
-      setIsProcessingPayment(false);
-    }
-  };
-
   return (
     <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e3beb8]/60 shadow-lux space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between pb-4 border-b border-[#ffe9e6]">
         <div>
           <h2 className="text-xl font-extrabold text-[#261816]">256-Bit Encrypted Payment</h2>
-          <p className="text-xs text-[#5a403c]">Select your preferred luxury payment method.</p>
+          <p className="text-xs text-[#5a403c]">
+            Secure checkout powered exclusively by Razorpay Payment Gateway.
+          </p>
         </div>
         <Lock className="w-6 h-6 text-[#8b0000]" />
-      </div>
-
-      {/* Provider Switch Toggle */}
-      <div className="flex items-center justify-between p-3 rounded-2xl bg-[#fff8f6] border border-[#e3beb8]/60 text-xs">
-        <div className="flex items-center gap-2 text-[#5a403c]">
-          <ShieldCheck className="w-4 h-4 text-[#8b0000]" />
-          <span>Active Provider Architecture: <strong>{providerMode.toUpperCase()}</strong></span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setProviderMode("development")}
-            className={`px-3 py-1 rounded-xl font-bold transition-colors ${
-              providerMode === "development"
-                ? "bg-[#8b0000] text-white"
-                : "bg-white text-[#5a403c] border border-[#e3beb8]"
-            }`}
-          >
-            Dev Test Mode
-          </button>
-          <button
-            type="button"
-            onClick={() => setProviderMode("razorpay")}
-            className={`px-3 py-1 rounded-xl font-bold transition-colors ${
-              providerMode === "razorpay"
-                ? "bg-[#8b0000] text-white"
-                : "bg-white text-[#5a403c] border border-[#e3beb8]"
-            }`}
-          >
-            Razorpay Mode
-          </button>
-        </div>
       </div>
 
       {/* Error & Warning Notifications */}
@@ -412,203 +295,88 @@ export default function PaymentPage() {
         </div>
       )}
 
-      {/* Payment Method Selector Tabs */}
-      <div className="grid grid-cols-3 gap-3">
-        {(["card", "apple_pay", "crypto"] as const).map((method) => (
-          <button
-            key={method}
-            type="button"
-            onClick={(e) => {
-              if (isDemoMode) {
-                handleDemoAction(e);
-                return;
-              }
-              setPaymentDetails({ ...paymentDetails, method });
-            }}
-            className={`p-3.5 rounded-2xl border-2 text-xs font-bold transition-all flex flex-col items-center gap-1.5 ${
-              paymentDetails.method === method
-                ? "border-[#8b0000] bg-[#ffe9e6]/40 text-[#8b0000]"
-                : "border-[#e3beb8]/50 text-[#5a403c] hover:border-[#8b0000]/40"
-            }`}
-          >
-            <CreditCard className="w-5 h-5" />
-            <span className="capitalize">{method.replace("_", " ")}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* Card Input fields (Visual Mock / Preset Data) */}
-      <div className="space-y-4 pt-2">
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-[#5a403c] uppercase">Cardholder Name</label>
-          <input
-            type="text"
-            required
-            value={paymentDetails.cardName}
-            onChange={(e) => setPaymentDetails({ ...paymentDetails, cardName: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-[#5a403c] uppercase">Card Number</label>
-          <input
-            type="text"
-            required
-            value={paymentDetails.cardNumber}
-            onChange={(e) => setPaymentDetails({ ...paymentDetails, cardNumber: e.target.value })}
-            className="w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-[#5a403c] uppercase">Expiry Date</label>
-            <input
-              type="text"
-              placeholder="MM/YY"
-              required
-              value={paymentDetails.cardExpiry}
-              onChange={(e) => setPaymentDetails({ ...paymentDetails, cardExpiry: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs font-bold text-[#5a403c] uppercase">CVC Code</label>
-            <input
-              type="text"
-              maxLength={4}
-              required
-              value={paymentDetails.cardCvc}
-              onChange={(e) => setPaymentDetails({ ...paymentDetails, cardCvc: e.target.value })}
-              className="w-full px-4 py-2.5 rounded-xl bg-white text-xs font-semibold border border-[#e3beb8] focus:outline-none focus:border-[#8b0000]"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Phase 4.3A Development Payment Environment Section */}
-      {providerMode === "development" ? (
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-[#fff8f6] via-white to-[#ffe9e6]/50 border-2 border-[#8b0000]/30 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-[#e3beb8]/60">
-            <div className="flex items-center gap-2">
-              <FlaskConical className="w-5 h-5 text-[#8b0000] animate-pulse" />
-              <div>
-                <span className="text-xs font-extrabold text-[#8b0000] uppercase tracking-wider block">
-                  Development Payment Environment
-                </span>
-                <span className="text-[11px] text-[#5a403c] font-medium block">
-                  This is a test payment environment. No real money will be charged.
+      {/* RAZORPAY TEST MODE PAYMENT CARD */}
+      <div className="p-6 rounded-2xl bg-gradient-to-br from-[#fff7f5] via-white to-[#fff0ee] border-2 border-[#8b0000]/30 shadow-sm space-y-5">
+        <div className="flex items-center justify-between pb-3 border-b border-[#f3d2cc]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#8b0000] text-white flex items-center justify-center shadow-xs">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-extrabold text-[#261816]">Razorpay Secure Gateway</span>
+                <span className="px-2 py-0.5 rounded-full bg-[#ffe9e6] text-[#8b0000] text-[10px] font-black uppercase border border-[#e3beb8]">
+                  Test Mode
                 </span>
               </div>
-            </div>
-            {createdOrder && (
-              <span className="px-2.5 py-1 bg-[#8b0000] text-white text-[10px] font-mono font-bold rounded-lg shrink-0">
-                WooCommerce Order {createdOrder.orderNumber}
-              </span>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[11px] font-bold text-[#5a403c] uppercase block">
-              Simulate Gateway Action
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <button
-                type="button"
-                disabled={isProcessingPayment || isCreatingOrder}
-                onClick={() => handleTestPaymentSimulation("success")}
-                className="px-4 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Simulate Successful Payment</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={isProcessingPayment || isCreatingOrder}
-                onClick={() => handleTestPaymentSimulation("failed")}
-                className="px-4 py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-              >
-                <XCircle className="w-4 h-4" />
-                <span>Simulate Failed Payment</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={isProcessingPayment || isCreatingOrder}
-                onClick={() => handleTestPaymentSimulation("cancelled")}
-                className="px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Simulate Cancelled Payment</span>
-              </button>
+              <p className="text-xs text-[#5a403c]">
+                Official sandbox environment with instant server signature verification.
+              </p>
             </div>
           </div>
-        </div>
-      ) : (
-        <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 via-white to-emerald-50/50 border-2 border-emerald-600/30 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-emerald-200">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-700" />
-              <div>
-                <span className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider block">
-                  Razorpay Secure Gateway Architecture
-                </span>
-                <span className="text-[11px] text-[#5a403c] font-medium block">
-                  Official Razorpay Modal Checkout & Server Signature Verification
-                </span>
-              </div>
-            </div>
-            {createdOrder && (
-              <span className="px-2.5 py-1 bg-emerald-800 text-white text-[10px] font-mono font-bold rounded-lg shrink-0">
-                WooCommerce Order {createdOrder.orderNumber}
-              </span>
-            )}
-          </div>
 
-          <button
-            type="button"
-            disabled={isProcessingPayment || isCreatingOrder}
-            onClick={handleRazorpayPayment}
-            className="w-full py-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>
-              {isProcessingPayment
-                ? "Launching Razorpay Modal..."
-                : isCreatingOrder
-                ? "Creating WooCommerce Order..."
-                : "Pay with Razorpay Checkout"}
+          {createdOrder && (
+            <span className="px-2.5 py-1 bg-[#8b0000] text-white text-[10px] font-mono font-bold rounded-lg shrink-0 hidden sm:inline">
+              Order #{createdOrder.orderNumber}
             </span>
-          </button>
+          )}
         </div>
-      )}
+
+        <div className="space-y-2 text-xs text-[#5a403c]">
+          <div className="flex items-center justify-between py-1 border-b border-[#f3d2cc]/50">
+            <span>Payment Method:</span>
+            <strong className="text-[#261816]">Razorpay (Cards, UPI, Netbanking, Wallets)</strong>
+          </div>
+          <div className="flex items-center justify-between py-1 border-b border-[#f3d2cc]/50">
+            <span>Authoritative Amount:</span>
+            <strong className="text-[#8b0000] text-sm">{formatPrice(total)}</strong>
+          </div>
+          <div className="flex items-center justify-between py-1">
+            <span>Transaction Security:</span>
+            <span className="text-emerald-700 font-bold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> 256-Bit SHA-256 HMAC Verified
+            </span>
+          </div>
+        </div>
+
+        <div className="p-3.5 rounded-xl bg-white border border-[#e3beb8] flex items-center gap-3 text-xs text-[#5a403c]">
+          <Sparkles className="w-4 h-4 text-[#8b0000] shrink-0" />
+          <span>
+            Clicking <strong>Pay with Razorpay</strong> will open the official Razorpay test window. You can use any test card / UPI ID.
+          </span>
+        </div>
+      </div>
 
       {/* Footer & Primary Action */}
       <div className="pt-4 flex items-center justify-between border-t border-[#ffe9e6]">
         <div>
-          <span className="text-xs text-[#5a403c] font-medium block">Total Charged:</span>
+          <span className="text-xs text-[#5a403c] font-medium block">Total Payable:</span>
           <span className="text-xl font-extrabold text-[#8b0000]">{formatPrice(total)}</span>
         </div>
 
         <button
           type="button"
           disabled={isProcessingPayment || isCreatingOrder}
-          onClick={providerMode === "razorpay" ? handleRazorpayPayment : () => handleTestPaymentSimulation("success")}
-          className="px-8 py-3.5 bg-[#8b0000] text-white font-bold text-xs rounded-xl shadow-lg hover:bg-[#bc0000] transition-colors flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+          onClick={handleRazorpayPayment}
+          className="px-8 py-3.5 bg-[#8b0000] hover:bg-[#a00000] active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
         >
-          <span>
-            {isProcessingPayment
-              ? "Verifying Payment..."
-              : isCreatingOrder
-              ? "Allocating WooCommerce Order..."
-              : providerMode === "razorpay"
-              ? "Pay via Razorpay Modal"
-              : "Complete Purchase (Test)"}
-          </span>
-          <ArrowRight className="w-4 h-4" />
+          {isProcessingPayment ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Verifying Payment...</span>
+            </>
+          ) : isCreatingOrder ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Creating Order...</span>
+            </>
+          ) : (
+            <>
+              <ShieldCheck className="w-4 h-4" />
+              <span>Pay with Razorpay (Test Mode)</span>
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
         </button>
       </div>
     </div>

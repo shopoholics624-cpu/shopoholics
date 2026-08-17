@@ -63,12 +63,12 @@ export function DeleteAccountSection() {
           </div>
           <div>
             <h3 className="text-base font-extrabold text-red-950">Danger Zone — Permanent Account Deletion</h3>
-            <p className="text-xs text-red-800/80">Irreversible WooCommerce customer profile removal</p>
+            <p className="text-xs text-red-800/80">Irreversible customer profile and account removal</p>
           </div>
         </div>
 
         <p className="text-xs text-red-900/90 leading-relaxed">
-          Deleting your account is permanent. Your customer profile, saved addresses, wishlist, and personal account data will be permanently removed from WooCommerce. This action cannot be undone.
+          Deleting your account is permanent. Your customer profile, saved addresses, wishlist, and personal account data will be permanently removed. This action cannot be undone.
         </p>
 
         <div className="pt-2">
@@ -115,7 +115,7 @@ export function DeleteAccountSection() {
             {/* Warning Message */}
             <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-900 text-xs leading-relaxed space-y-2">
               <p className="font-bold">
-                This will permanently remove your WooCommerce customer account and associated personal data.
+                This will permanently remove your customer account and associated personal data.
               </p>
               <p className="text-red-800">
                 Your personal profile, saved shipping addresses, active cart associations, and wishlist items will be erased from the store.

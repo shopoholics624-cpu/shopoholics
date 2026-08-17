@@ -1,107 +1,195 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DemoLink as Link } from "@/components/demo/demo-link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { HeroSlide } from "@/types/homepage";
+import { DEFAULT_HERO_SLIDES } from "@/constants/homepage";
+
+function getSlideHref(slide: HeroSlide): string | null {
+  if (slide.redirectType === "none") return null;
+  if (slide.redirectType === "product") return `/products/${slide.redirectValue || ""}`;
+  if (slide.redirectType === "category") return `/shop?category=${slide.redirectValue || ""}`;
+  if (slide.redirectType === "shop") return "/shop";
+  if (slide.redirectType === "custom") return slide.redirectValue || "/shop";
+  return "/shop";
+}
 
 export function HeroShowcase() {
+  const [slides, setSlides] = useState<HeroSlide[]>(DEFAULT_HERO_SLIDES);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const touchStartXRef = useRef(0);
+  const touchEndXRef = useRef(0);
 
-  const slides = [
-    {
-      id: 1,
-      image: "/images/hero-banner-1.jpg",
-      alt: "Upgrade Your World With Smart Technology",
-      ctaHref: "/shop",
-    },
-    {
-      id: 2,
-      image: "/images/hero-banner-2.jpg",
-      alt: "Next Level Performance - Experience Power, Speed, and Innovation",
-      ctaHref: "/shop?category=smartphones",
-    },
-  ];
-
-  // Auto-play slideshow every 5 seconds
+  // Fetch dynamic hero slides from API (always fresh on every page load / refresh)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(interval);
+    let isMounted = true;
+    async function fetchHeroSlides() {
+      try {
+        const res = await fetch(`/api/homepage/hero?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.slides) && data.slides.length > 0) {
+            setSlides(data.slides);
+          }
+        }
+      } catch (err) {
+        console.warn("[HeroShowcase] API fetch fallback active:", err);
+      }
+    }
+    fetchHeroSlides();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const nextSlide = useCallback(() => {
+    if (slides.length <= 1) return;
+    setCurrentSlide((prev) => (prev + 1) % slides.length);
   }, [slides.length]);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % slides.length);
-  };
-
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
+    if (slides.length <= 1) return;
     setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  }, [slides.length]);
+
+  // Auto-play slideshow every 7 seconds
+  useEffect(() => {
+    if (slides.length <= 1) return;
+    const interval = setInterval(() => {
+      nextSlide();
+    }, 7000);
+    return () => clearInterval(interval);
+  }, [nextSlide, slides.length]);
+
+  // Mobile Touch Swipe Handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.targetTouches[0].clientX;
   };
 
-  const slide = slides[currentSlide];
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndXRef.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartXRef.current || !touchEndXRef.current) return;
+    const distance = touchStartXRef.current - touchEndXRef.current;
+    const minSwipeDistance = 40;
+
+    if (distance > minSwipeDistance) {
+      nextSlide();
+    } else if (distance < -minSwipeDistance) {
+      prevSlide();
+    }
+
+    touchStartXRef.current = 0;
+    touchEndXRef.current = 0;
+  };
+
+  const validIndex = currentSlide >= slides.length ? 0 : currentSlide;
+  const slide = slides[validIndex] || slides[0] || DEFAULT_HERO_SLIDES[0];
+  const slideHref = getSlideHref(slide);
+  const hasMobileImage = Boolean(slide.mobileImage && slide.mobileImage.trim() !== "");
 
   return (
-    <section className="relative overflow-hidden bg-white w-full">
-      {/* Full Screen Edge-to-Edge Hero Banner Carousel (No Borders) */}
-      <div className="relative w-full h-[65vh] sm:h-[78vh] md:h-[86vh] lg:h-[92vh] overflow-hidden bg-black group">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={slide.id}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="w-full h-full relative flex items-center justify-center bg-[#0d0d0d]"
-          >
-            <Link href={slide.ctaHref} className="block w-full h-full cursor-pointer relative flex items-center justify-center">
-              {/* eslint-disable-next-img-element */}
-              <img
-                src={slide.image}
-                alt={slide.alt}
-                className="w-full h-full object-contain sm:object-cover object-center"
-                loading="eager"
-              />
-              {/* Subtle Overlay Gradient for Optimal Header & Navigation Contrast */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/40 pointer-events-none" />
+    <section
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className={`relative w-full ${
+        hasMobileImage ? "aspect-[9/16] lg:aspect-[16/9]" : "aspect-[16/9]"
+      } overflow-hidden bg-[#f4f4f4] select-none group transition-all duration-300`}
+    >
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={`hero-slide-${slide.id}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
+          className="w-full h-full relative"
+        >
+          {slideHref ? (
+            <Link
+              href={slideHref}
+              className="block w-full h-full cursor-pointer relative"
+            >
+              {/* Desktop / Laptop View: Screens >= 1024px (1920x1080 / 16:9 - 100% full image, no cropping) */}
+              <div className="hidden lg:block w-full h-full relative">
+                {/* eslint-disable-next-img-element */}
+                <img
+                  src={slide.desktopImage}
+                  alt={slide.alt || slide.title}
+                  className="w-full h-full object-contain object-center block"
+                  loading="eager"
+                />
+              </div>
+
+              {/* Tablet / Mobile View: Screens < 1024px (1080x1920 / 9:16 - 100% full image, no cropping) */}
+              <div className="block lg:hidden w-full h-full relative">
+                {/* eslint-disable-next-img-element */}
+                <img
+                  src={hasMobileImage ? slide.mobileImage!.trim() : slide.desktopImage}
+                  alt={slide.alt || slide.title}
+                  className="w-full h-full object-contain object-center block"
+                  loading="eager"
+                />
+              </div>
             </Link>
-          </motion.div>
-        </AnimatePresence>
+          ) : (
+            <div className="w-full h-full relative cursor-default">
+              {/* Desktop / Laptop View: Screens >= 1024px (1920x1080 / 16:9 - 100% full image, no cropping) */}
+              <div className="hidden lg:block w-full h-full relative">
+                {/* eslint-disable-next-img-element */}
+                <img
+                  src={slide.desktopImage}
+                  alt={slide.alt || slide.title}
+                  className="w-full h-full object-contain object-center block"
+                  loading="eager"
+                />
+              </div>
 
-        {/* Left Glassmorphism Slider Button */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white/25 hover:bg-[#8b0000] border border-white/40 text-white shadow-2xl backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-30"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
-        </button>
+              {/* Tablet / Mobile View: Screens < 1024px (1080x1920 / 9:16 - 100% full image, no cropping) */}
+              <div className="block lg:hidden w-full h-full relative">
+                {/* eslint-disable-next-img-element */}
+                <img
+                  src={hasMobileImage ? slide.mobileImage!.trim() : slide.desktopImage}
+                  alt={slide.alt || slide.title}
+                  className="w-full h-full object-contain object-center block"
+                  loading="eager"
+                />
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
 
-        {/* Right Glassmorphism Slider Button */}
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white/25 hover:bg-[#8b0000] border border-white/40 text-white shadow-2xl backdrop-blur-md flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-30"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
-        </button>
-
-        {/* Bottom Glassmorphism Pagination Dots */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2.5 z-30 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 shadow-2xl">
+      {/* Pagination Indicator Dots (Ultra-Transparent Glassmorphism) */}
+      {slides.length > 1 && (
+        <div className="absolute bottom-2.5 sm:bottom-5 lg:bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2.5 z-30 bg-white/15 hover:bg-white/25 backdrop-blur-sm px-2.5 sm:px-4 py-1 sm:py-2 rounded-full border border-white/25 shadow-sm transition-all">
           {slides.map((s, idx) => (
             <button
               key={s.id}
-              onClick={() => setCurrentSlide(idx)}
-              className={`transition-all duration-300 ${
-                currentSlide === idx
-                  ? "w-7 h-2.5 bg-[#8b0000] rounded-full shadow-md"
-                  : "w-2.5 h-2.5 bg-white/60 hover:bg-white rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentSlide(idx);
+              }}
+              className={`transition-all duration-300 cursor-pointer ${
+                validIndex === idx
+                  ? "w-4 sm:w-7 h-1.5 sm:h-2.5 bg-[#8b0000] rounded-full shadow-md"
+                  : "w-1.5 sm:w-2.5 h-1.5 sm:h-2.5 bg-black/20 hover:bg-black/45 rounded-full"
               }`}
               aria-label={`Go to slide ${idx + 1}`}
             />
           ))}
         </div>
-      </div>
+      )}
     </section>
   );
 }

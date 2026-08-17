@@ -35,6 +35,8 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { SearchModal } from "@/components/common/search-modal";
 import { Product } from "@/types/product";
 import { formatPrice } from "@/lib/utils";
+import { AnnouncementItem } from "@/types/homepage";
+import { DEFAULT_ANNOUNCEMENTS } from "@/constants/homepage";
 
 interface WooCategoryItem {
   id: number;
@@ -87,6 +89,9 @@ export function Header() {
   const [wooCategories, setWooCategories] = useState<WooCategoryItem[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
+  // Dynamic Homepage Announcements state
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>(DEFAULT_ANNOUNCEMENTS);
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -99,6 +104,34 @@ export function Header() {
     setIsMobileMenuOpen(false);
     setIsMegaMenuOpen(false);
   }, [pathname]);
+
+  // Fetch live homepage announcements dynamically
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchAnnouncements() {
+      try {
+        const res = await fetch(`/api/homepage/announcements?_t=${Date.now()}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data.success && Array.isArray(data.announcements) && data.announcements.length > 0) {
+            setAnnouncements(data.announcements);
+          }
+        }
+      } catch (err) {
+        console.warn("[Header] Announcements fetch fallback active:", err);
+      }
+    }
+    fetchAnnouncements();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Fetch live WooCommerce categories dynamically
   useEffect(() => {
@@ -224,33 +257,45 @@ export function Header() {
     ? previewProductsMap[currentActiveCategoryObj.slug] || []
     : [];
 
+  // Dynamic Announcement calculation to guarantee 100% continuous coverage & speed adjustment
+  const activeAnnouncements = (announcements || []).filter((a) => a.isEnabled !== false);
+  const safeItems = activeAnnouncements.length > 0 ? activeAnnouncements : DEFAULT_ANNOUNCEMENTS;
+  // If 1 item, repeat 6 times per half so it wraps continuously over whole strip without blank voids
+  const repeatCount = Math.max(1, Math.ceil(6 / safeItems.length));
+  const repeatedItems = Array.from({ length: repeatCount }, () => safeItems).flat();
+  // Adjust scroll duration based on the number of items and character density (approx 4.5s per item)
+  const dynamicScrollDuration = Math.max(14, Math.min(50, repeatedItems.length * 4.5));
+
   return (
     <>
-      {/* Top Rolling Marquee Strip (Fixed at the Very Top of Website) */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-[28px] sm:h-[30px] bg-[#800000] text-white overflow-hidden border-b border-white/10 shadow-sm select-none flex items-center">
-        <div className="flex animate-marquee-smooth items-center text-[10px] sm:text-[11px] font-extrabold tracking-wider uppercase text-white">
+      {/* Top Rolling Marquee Strip (Fixed at the Very Top of Website - Non-clickable continuous loop) */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-[28px] sm:h-[30px] bg-[#800000] text-white overflow-hidden border-b border-white/10 shadow-sm select-none flex items-center cursor-default">
+        <div
+          className="flex animate-marquee-smooth items-center text-[10px] sm:text-[11px] font-extrabold tracking-wider uppercase text-white cursor-default"
+          style={{ animationDuration: `${dynamicScrollDuration}s` }}
+        >
           {/* First Set */}
-          <span className="px-8 shrink-0">EXCLUSIVE LAUNCH OFFER: BUY ANY FLAGSHIP DEVICE, GET 50% OFF ACCESSORIES</span>
-          <span className="px-8 shrink-0">FREE JBL FLIP 6 SPEAKER BUNDLE WITH APEX SMARTPHONE PRO</span>
-          <span className="px-8 shrink-0">INSURED EXPRESS COURIER SHIPPING ON ORDERS OVER $99</span>
-          <span className="px-8 shrink-0">COMPLIMENTARY 2-YEAR CONCIERGE WARRANTY ON ALL PRODUCTS</span>
-          <span className="px-8 shrink-0">0% INTEREST EMI PLANS AVAILABLE ON ALL LAPTOPS & PHONES</span>
+          {repeatedItems.map((ann, idx) => (
+            <span key={`ann-1-${ann.id}-${idx}`} className="px-8 shrink-0 flex items-center">
+              {ann.text}
+            </span>
+          ))}
 
           {/* Duplicated Second Set for 100% Seamless Infinite Loop */}
-          <span className="px-8 shrink-0">EXCLUSIVE LAUNCH OFFER: BUY ANY FLAGSHIP DEVICE, GET 50% OFF ACCESSORIES</span>
-          <span className="px-8 shrink-0">FREE JBL FLIP 6 SPEAKER BUNDLE WITH APEX SMARTPHONE PRO</span>
-          <span className="px-8 shrink-0">INSURED EXPRESS COURIER SHIPPING ON ORDERS OVER $99</span>
-          <span className="px-8 shrink-0">COMPLIMENTARY 2-YEAR CONCIERGE WARRANTY ON ALL PRODUCTS</span>
-          <span className="px-8 shrink-0">0% INTEREST EMI PLANS AVAILABLE ON ALL LAPTOPS & PHONES</span>
+          {repeatedItems.map((ann, idx) => (
+            <span key={`ann-2-${ann.id}-${idx}`} className="px-8 shrink-0 flex items-center">
+              {ann.text}
+            </span>
+          ))}
         </div>
       </div>
 
-      {/* Main Transparent Header Navbar floating over Hero Section */}
+      {/* Main Header Navbar */}
       <header
         className={`fixed top-[28px] sm:top-[30px] left-0 right-0 z-40 transition-all duration-300 ${
           isScrolled
-            ? "bg-white/90 backdrop-blur-lg shadow-xl py-1.5 border-b border-[#e3beb8]/30"
-            : "bg-transparent py-2.5"
+            ? "bg-white/95 backdrop-blur-lg shadow-md py-1.5 border-b border-[#e3beb8]/30"
+            : "bg-white shadow-sm border-b border-[#e3beb8]/30 py-2 sm:py-2.5 lg:bg-transparent lg:shadow-none lg:border-transparent lg:py-2.5"
         }`}
       >
         {/* Main Header Nav Bar Container */}
@@ -801,13 +846,15 @@ export function Header() {
       {/* Global Interactive Search Modal */}
       <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
-      {/* Responsive Structural Header Layout Spacer for Non-Homepage Routes */}
-      {pathname !== "/" && (
-        <div
-          aria-hidden="true"
-          className="h-[88px] sm:h-[96px] lg:h-[104px] w-full shrink-0 pointer-events-none select-none"
-        />
-      )}
+      {/* Responsive Structural Header Layout Spacer */}
+      <div
+        aria-hidden="true"
+        className={
+          pathname === "/"
+            ? "block lg:hidden h-[84px] sm:h-[94px] w-full shrink-0 pointer-events-none select-none"
+            : "h-[88px] sm:h-[96px] lg:h-[104px] w-full shrink-0 pointer-events-none select-none"
+        }
+      />
     </>
   );
 }

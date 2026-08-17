@@ -27,7 +27,13 @@ export default function CategoryPage({
     async function fetchCategoryProducts() {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/products?category=${encodeURIComponent(categoryKey)}`);
+        const res = await fetch(`/api/products?category=${encodeURIComponent(categoryKey)}`, {
+          cache: "no-store",
+          headers: {
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            Pragma: "no-cache",
+          },
+        });
         if (res.ok) {
           const data = await res.json();
           if (isMounted && data.success && Array.isArray(data.products)) {
@@ -99,7 +105,7 @@ export default function CategoryPage({
               <p className="text-xs text-[#5a403c] font-medium">Fetching category devices...</p>
             </div>
           ) : categoryProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6">
               {categoryProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

@@ -24,7 +24,7 @@ export default function AccountDetailsPage() {
 
     async function loadProfile() {
       try {
-        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        const res = await fetch("/api/auth/me?full=true", { cache: "no-store" });
         if (!res.ok) {
           if (isMounted) router.push("/login");
           return;

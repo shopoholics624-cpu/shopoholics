@@ -1,8 +1,10 @@
 import { initializeApp, getApps, cert, App } from "firebase-admin/app";
 import { getFirestore, Firestore } from "firebase-admin/firestore";
+import { getStorage, Storage } from "firebase-admin/storage";
 
 let firebaseAdminApp: App | undefined;
 let firestoreDb: Firestore | undefined;
+let firebaseStorage: Storage | undefined;
 
 /**
  * Initializes and returns the singleton Firebase Admin instance.
@@ -22,6 +24,9 @@ export function getFirebaseAdminApp(): App {
   const projectId = process.env.FIREBASE_PROJECT_ID;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const storageBucket =
+    process.env.FIREBASE_STORAGE_BUCKET ||
+    (projectId ? `${projectId}.firebasestorage.app` : undefined);
 
   if (!projectId || !clientEmail || !privateKey) {
     throw new Error(
@@ -41,6 +46,7 @@ export function getFirebaseAdminApp(): App {
         clientEmail,
         privateKey,
       }),
+      storageBucket,
     });
     return firebaseAdminApp;
   } catch (err: any) {
@@ -64,4 +70,16 @@ export function getDb(): Firestore {
     // Ignore if already configured
   }
   return firestoreDb;
+}
+
+/**
+ * Returns the singleton Firebase Storage client.
+ */
+export function getStorageClient(): Storage {
+  if (firebaseStorage) {
+    return firebaseStorage;
+  }
+  const app = getFirebaseAdminApp();
+  firebaseStorage = getStorage(app);
+  return firebaseStorage;
 }

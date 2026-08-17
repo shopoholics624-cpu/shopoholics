@@ -22,12 +22,25 @@ function getSessionSecret(): string {
   return secret || "shopoholics_dev_session_secret_key_2026";
 }
 
+function getWooCredentials() {
+  const url = process.env.WOOCOMMERCE_URL;
+  const key = process.env.WOOCOMMERCE_CONSUMER_KEY;
+  const secret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
+
+  if (!url || !key || !secret) return null;
+  return {
+    baseUrl: url.replace(/\/+$/, ""),
+    authHeader: `Basic ${Buffer.from(`${key}:${secret}`).toString("base64")}`,
+  };
+}
+
 export interface CustomerSessionPayload {
   customerId: number;
   email: string;
   firstName: string;
   lastName: string;
   displayName?: string;
+  role?: string;
   createdAt: number;
   rememberMe?: boolean;
 }
@@ -89,4 +102,44 @@ export async function getAuthenticatedCustomerSession(): Promise<CustomerSession
   } catch (err) {
     return null;
   }
+}
+
+/**
+ * Server-side verification that the authenticated user possesses the WordPress `administrator` role.
+ */
+export async function verifyIsAdministrator(customerId: number): Promise<boolean> {
+  if (!customerId) return false;
+  const credentials = getWooCredentials();
+  if (!credentials) return false;
+
+  try {
+    const res = await fetch(`${credentials.baseUrl}/wp-json/wc/v3/customers/${customerId}`, {
+      headers: { Authorization: credentials.authHeader },
+      cache: "no-store",
+    });
+
+    if (!res.ok) return false;
+    const customer = await res.json();
+
+    const role = (customer.role || "").toLowerCase();
+    const roles = Array.isArray(customer.roles) ? customer.roles.map((r: string) => r.toLowerCase()) : [];
+
+    return role === "administrator" || roles.includes("administrator");
+  } catch (err) {
+    console.error("[Auth] verifyIsAdministrator error:", err);
+    return false;
+  }
+}
+
+/**
+ * Validates and returns the authenticated administrator session. Returns null if not logged in or unauthorized.
+ */
+export async function getAuthenticatedAdminSession(): Promise<CustomerSessionPayload | null> {
+  const session = await getAuthenticatedCustomerSession();
+  if (!session || !session.customerId) return null;
+
+  const isAdmin = await verifyIsAdministrator(session.customerId);
+  if (!isAdmin) return null;
+
+  return session;
 }

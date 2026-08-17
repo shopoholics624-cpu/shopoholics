@@ -25,6 +25,22 @@ export interface CartItem {
   unavailable?: boolean;
 }
 
+export interface AppliedCartOffer {
+  id: string;
+  title: string;
+  code: string;
+  discountType: "percent" | "fixed";
+  discountAmount: number;
+  applyTo: "entire_store" | "category" | "products";
+  targetCategory?: string;
+  targetProductIds?: number[];
+  usageRule?: string;
+  maxEligibleQuantity?: number | null;
+  calculatedDiscount: number;
+  eligibleItemsCount: number;
+  description?: string;
+}
+
 export interface WooCommerceCartTotals {
   subtotal: number;
   discountTotal: number;
@@ -32,6 +48,7 @@ export interface WooCommerceCartTotals {
   shippingTotal: number;
   total: number;
   totalQuantity: number;
+  appliedOffer?: AppliedCartOffer | null;
 }
 
 export interface GstDetails {

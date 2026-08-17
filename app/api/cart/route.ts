@@ -6,6 +6,9 @@ import { readCartFromFile, writeCartToFile } from "@/lib/cart-store";
 import { CartItem } from "@/types/cart";
 import { Product, ProductVariant } from "@/types/product";
 import { getFreeGiftBundle, createFreeGiftCartItem } from "@/lib/bundle-utils";
+import { getHomepageConfig } from "@/lib/homepage-store";
+import { evaluateCartDiscount } from "@/lib/discount-utils";
+import { getCustomerOfferUsage, getCustomerTotalOrderCount } from "@/lib/offer-usage-store";
 
 const GUEST_SESSION_COOKIE_NAME = "shopoholics_cart_session";
 
@@ -52,9 +55,9 @@ async function resolveCartContext(): Promise<ResolvedCartContext> {
 }
 
 /**
- * Normalizes cart totals according to pure WooCommerce values.
+ * Normalizes cart totals according to pure WooCommerce values, active offers, and customer usage rules.
  */
-function calculateWooCartTotals(items: CartItem[]) {
+async function calculateWooCartTotals(items: CartItem[], customerId?: number | null) {
   const subtotal = (items || []).reduce((sum, item) => {
     if (!item || item.isFreeGift || item.unavailable) return sum;
     const price = item.selectedVariant?.price ?? item.product?.price ?? 0;
@@ -66,13 +69,50 @@ function calculateWooCartTotals(items: CartItem[]) {
     0
   );
 
+  let discountTotal = 0;
+  let appliedOffer = null;
+
+  try {
+    const config = await getHomepageConfig();
+    const activeOffers = config.offers || [];
+
+    let customerContext = {
+      customerId: customerId || null,
+      totalOrderCount: 0,
+      usedOffers: {} as Record<string, any>,
+    };
+
+    if (customerId && customerId > 0) {
+      const [usage, orderCount] = await Promise.all([
+        getCustomerOfferUsage(customerId),
+        getCustomerTotalOrderCount(customerId),
+      ]);
+      customerContext = {
+        customerId,
+        totalOrderCount: orderCount,
+        usedOffers: usage,
+      };
+    }
+
+    const evaluation = evaluateCartDiscount(items, activeOffers, customerContext);
+    discountTotal = evaluation.discountTotal;
+    appliedOffer = evaluation.appliedOffer;
+  } catch (err) {
+    console.warn("[calculateWooCartTotals] Offer evaluation exception:", err);
+  }
+
+  const taxTotal = 0;
+  const shippingTotal = 0;
+  const total = Math.max(0, subtotal - discountTotal + taxTotal + shippingTotal);
+
   return {
     subtotal,
-    discountTotal: 0,
-    shippingTotal: 0,
-    taxTotal: 0,
-    total: subtotal,
+    discountTotal,
+    shippingTotal,
+    taxTotal,
+    total,
     totalQuantity,
+    appliedOffer,
   };
 }
 
@@ -305,7 +345,7 @@ export async function GET() {
       storedItems.map((rawItem: any) => normalizeCartItem(rawItem))
     );
 
-    const totals = calculateWooCartTotals(revalidatedItems);
+    const totals = await calculateWooCartTotals(revalidatedItems, context.customerId);
 
     const response = NextResponse.json({
       success: true,
@@ -572,7 +612,7 @@ export async function POST(request: NextRequest) {
 
     await writeCartToFile(context.cartKey, normalizedItems);
 
-    const totals = calculateWooCartTotals(normalizedItems);
+    const totals = await calculateWooCartTotals(normalizedItems, context.customerId);
 
     return NextResponse.json({
       success: true,
@@ -595,7 +635,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const context = await resolveCartContext();
-    if (!context.customerId) {
+    if (!context.customerId && !context.guestSessionId) {
       return NextResponse.json(
         { success: false, requireAuth: true, message: "Authentication required to modify shopping bag." },
         { status: 401 }
@@ -635,13 +675,20 @@ export async function PUT(request: NextRequest) {
     );
 
     await writeCartToFile(context.cartKey, normalizedItems);
-    const totals = calculateWooCartTotals(normalizedItems);
+    const totals = await calculateWooCartTotals(normalizedItems, context.customerId);
 
-    return NextResponse.json({
-      success: true,
-      items: normalizedItems,
-      totals,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        items: normalizedItems,
+        totals,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        },
+      }
+    );
   } catch (error) {
     console.error("[API /api/cart PUT Error]:", error);
     return NextResponse.json({ success: false, message: "Failed to update cart" }, { status: 500 });
@@ -654,7 +701,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const context = await resolveCartContext();
-    if (!context.customerId) {
+    if (!context.customerId && !context.guestSessionId) {
       return NextResponse.json(
         { success: false, requireAuth: true, message: "Authentication required to modify shopping bag." },
         { status: 401 }
@@ -667,11 +714,18 @@ export async function DELETE(request: NextRequest) {
 
     if (clearAll) {
       await writeCartToFile(context.cartKey, []);
-      return NextResponse.json({
-        success: true,
-        items: [],
-        totals: { subtotal: 0, discountTotal: 0, shippingTotal: 0, taxTotal: 0, total: 0, totalQuantity: 0 },
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          items: [],
+          totals: { subtotal: 0, discountTotal: 0, shippingTotal: 0, taxTotal: 0, total: 0, totalQuantity: 0 },
+        },
+        {
+          headers: {
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+          },
+        }
+      );
     }
 
     if (!itemId) {
@@ -696,13 +750,20 @@ export async function DELETE(request: NextRequest) {
     );
 
     await writeCartToFile(context.cartKey, normalizedItems);
-    const totals = calculateWooCartTotals(normalizedItems);
+    const totals = await calculateWooCartTotals(normalizedItems, context.customerId);
 
-    return NextResponse.json({
-      success: true,
-      items: normalizedItems,
-      totals,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        items: normalizedItems,
+        totals,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        },
+      }
+    );
   } catch (error) {
     console.error("[API /api/cart DELETE Error]:", error);
     return NextResponse.json({ success: false, message: "Failed to remove cart item" }, { status: 500 });

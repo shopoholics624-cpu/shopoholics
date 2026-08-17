@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getAuthenticatedCustomerSession } from "@/lib/auth";
+import { recordCustomerOfferUsage } from "@/lib/offer-usage-store";
 
 const CART_COOKIE_NAME = "shopoholics_cart_session";
 
@@ -123,20 +124,35 @@ export async function POST(request: NextRequest) {
 
     if (credentials) {
       try {
-        const orderPayload = {
+        const couponLines: any[] = [];
+        const feeLines: any[] = [];
+
+        if (cartData.totals?.appliedOffer?.code) {
+          couponLines.push({ code: cartData.totals.appliedOffer.code });
+        } else if (cartData.totals?.discountTotal > 0) {
+          feeLines.push({
+            name: cartData.totals.appliedOffer?.title || "Special Offer Discount",
+            total: `-${cartData.totals.discountTotal}`,
+          });
+        }
+
+        const metaData: any[] = [];
+        if (cartData.totals?.appliedOffer?.id) {
+          metaData.push({ key: "_applied_offer_id", value: cartData.totals.appliedOffer.id });
+        }
+
+        const orderPayload: any = {
           customer_id: session?.customerId || 0,
-          payment_method: paymentDetails?.method || "cod",
-          payment_method_title:
-            paymentDetails?.method === "card"
-              ? "Credit / Debit Card (Pending Authorization)"
-              : paymentDetails?.method === "apple_pay"
-              ? "Apple Pay"
-              : "Direct Order",
+          payment_method: "razorpay",
+          payment_method_title: "Razorpay Secure Gateway (Test Mode)",
           set_paid: false,
           status: "pending",
           billing: billingAddress,
           shipping: shippingAddressObj,
           line_items: lineItems,
+          ...(metaData.length > 0 ? { meta_data: metaData } : {}),
+          ...(couponLines.length > 0 ? { coupon_lines: couponLines } : {}),
+          ...(feeLines.length > 0 ? { fee_lines: feeLines } : {}),
         };
 
         const res = await fetch(`${credentials.baseUrl}/wp-json/wc/v3/orders`, {
@@ -161,12 +177,12 @@ export async function POST(request: NextRequest) {
     const orderNumber = wooOrderResponse?.number
       ? String(wooOrderResponse.number)
       : String(Math.floor(10000 + Math.random() * 90000));
-    const orderTotal = wooOrderResponse?.total
-      ? parseFloat(wooOrderResponse.total)
-      : cartData.totals?.total || 0;
+    const orderTotal = cartData.totals?.total !== undefined
+      ? cartData.totals.total
+      : (wooOrderResponse?.total ? parseFloat(wooOrderResponse.total) : 0);
     const orderStatus = wooOrderResponse?.status || "pending";
 
-    // Note: Server cart is NOT cleared here; cleared ONLY after successful payment in /api/payment/test
+    // Note: Server cart & offer usage are marked ONLY after successful Razorpay verification in /api/payment/razorpay/verify
 
     return NextResponse.json({
       success: true,
@@ -174,6 +190,9 @@ export async function POST(request: NextRequest) {
         id: orderId,
         orderNumber: `#CL-${orderNumber}`,
         total: orderTotal,
+        subtotal: cartData.totals?.subtotal || 0,
+        discountTotal: cartData.totals?.discountTotal || 0,
+        appliedOffer: cartData.totals?.appliedOffer || null,
         status: orderStatus,
         date: new Date().toISOString(),
         items: cartItems,

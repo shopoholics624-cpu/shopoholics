@@ -170,7 +170,7 @@ function LoginForm() {
 
           {/* Footer Register Link */}
           <div className="pt-4 border-t border-slate-200/80 text-center text-xs text-slate-600 relative z-10">
-            Don&apos;t have a WooCommerce customer account?{" "}
+            Don&apos;t have an account yet?{" "}
             <Link href="/register" className="font-extrabold text-[#8b0000] hover:underline ml-1">
               Create Account
             </Link>

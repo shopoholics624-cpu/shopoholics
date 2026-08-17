@@ -171,6 +171,8 @@ export interface Product {
   images: string[];
   featuredImage: string;
   description: string;
+  shortDescription?: string;
+  short_description?: string;
   features: string[];
   variants: ProductVariant[];
   attributeGroups?: ProductAttributeGroup[];

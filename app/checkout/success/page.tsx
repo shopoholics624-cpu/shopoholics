@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import Link from "next/link";
-import { CheckCircle2, ShieldCheck, Truck, ArrowRight, Receipt, Download, ShoppingBag } from "lucide-react";
+import { CheckCircle2, ArrowRight, Receipt, Download, ShoppingBag } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { formatPrice } from "@/lib/utils";
 
@@ -71,7 +71,7 @@ export default function OrderSuccessPage() {
           Payment Successful!
         </h1>
         <p className="text-xs sm:text-sm text-[#5a403c] leading-relaxed">
-          Your payment has been authorized. WooCommerce order <span className="font-mono font-bold text-[#8b0000]">{displayOrderNumber}</span> is now <strong className="capitalize text-emerald-700">{displayStatus}</strong>. Total Paid: <strong className="text-[#8b0000]">{displayTotal}</strong>.
+          Your payment has been authorized. Order <span className="font-mono font-bold text-[#8b0000]">#{displayOrderNumber}</span> is now <strong className="capitalize text-emerald-700">{displayStatus}</strong>. Total Paid: <strong className="text-[#8b0000]">{displayTotal}</strong>.
         </p>
       </div>
 
@@ -101,22 +101,6 @@ export default function OrderSuccessPage() {
           </div>
         </div>
       )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto pt-2 text-left">
-        <div className="p-4 rounded-2xl bg-white border border-[#e3beb8]/60 shadow-sm space-y-1">
-          <div className="flex items-center gap-2 text-xs font-bold text-[#8b0000]">
-            <Truck className="w-4 h-4" /> Express Shipping
-          </div>
-          <p className="text-xs text-[#5a403c]">Insured Courier Allocated</p>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-white border border-[#e3beb8]/60 shadow-sm space-y-1">
-          <div className="flex items-center gap-2 text-xs font-bold text-[#8b0000]">
-            <ShieldCheck className="w-4 h-4" /> Hardware Protection
-          </div>
-          <p className="text-xs text-[#5a403c]">2-Year Warranty Active</p>
-        </div>
-      </div>
 
       {/* GST Tax Credit Invoice Details Card */}
       {gst?.isGstRequired && (
