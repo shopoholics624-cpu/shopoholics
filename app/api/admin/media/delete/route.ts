@@ -4,7 +4,7 @@ import { getAuthenticatedAdminSession } from "@/lib/auth";
 export const dynamic = "force-dynamic";
 
 function getWordPressAppCredentials() {
-  const url = (process.env.WOOCOMMERCE_URL || "https://shopoholics.in").replace(/\/+$/, "");
+  const url = (process.env.WOOCOMMERCE_URL || "https://wp.shopoholics.in").replace(/\/+$/, "");
 
   const username =
     process.env.WORDPRESS_USERNAME ||

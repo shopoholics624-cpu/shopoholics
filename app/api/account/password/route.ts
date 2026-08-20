@@ -3,7 +3,7 @@ import { getAuthenticatedCustomerSession } from "@/lib/auth";
 import { updateWooCustomerPassword } from "@/lib/woocommerce";
 
 function getWordPressBaseUrl() {
-  const url = process.env.WOOCOMMERCE_URL || process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL || "https://shopoholics.in";
+  const url = process.env.WOOCOMMERCE_URL || process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL || "https://wp.shopoholics.in";
   return url.replace(/\/+$/, "");
 }
 

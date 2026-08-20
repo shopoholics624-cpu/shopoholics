@@ -16,7 +16,7 @@ function getMimeType(ext: string): string {
 }
 
 function getWordPressAppCredentials() {
-  const url = (process.env.WOOCOMMERCE_URL || "https://shopoholics.in").replace(/\/+$/, "");
+  const url = (process.env.WOOCOMMERCE_URL || "https://wp.shopoholics.in").replace(/\/+$/, "");
 
   // Read server-side WordPress Application Password credentials from environment
   const username =

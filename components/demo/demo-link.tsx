@@ -27,12 +27,26 @@ export function DemoLink({
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     const hrefStr = typeof href === "string" ? href : href.pathname || "";
     
-    // Allow Homepage, Shop, Products, Cart, Profile/Account & Checkout routes to open directly
+    // Allow Homepage, Shop, Products, Cart, About, Wishlist, Compare, Profile/Account & Checkout routes to open directly
     const isAllowedRoute =
       hrefStr === "/" ||
       hrefStr === "#" ||
       hrefStr === "/shop" ||
       hrefStr === "/cart" ||
+      hrefStr === "/about" ||
+      hrefStr === "/about-us" ||
+      hrefStr === "/contact" ||
+      hrefStr === "/contact-us" ||
+      hrefStr === "/privacy-policy" ||
+      hrefStr === "/privacy" ||
+      hrefStr === "/store-locations" ||
+      hrefStr === "/store-locator" ||
+      hrefStr === "/stores" ||
+      hrefStr === "/returns-refunds" ||
+      hrefStr === "/returns" ||
+      hrefStr === "/returns-and-refunds" ||
+      hrefStr === "/wishlist" ||
+      hrefStr === "/compare" ||
       hrefStr.startsWith("/shop?") ||
       hrefStr.startsWith("/products/") ||
       hrefStr.startsWith("/categories/") ||

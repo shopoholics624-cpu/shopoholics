@@ -5,7 +5,7 @@ import { mergeGuestCartIntoCustomerCart } from "@/lib/cart-store";
 import { mergeGuestWishlistIntoCustomer } from "@/lib/wishlist-store";
 
 function getWordPressBaseUrl() {
-  const url = process.env.WOOCOMMERCE_URL || process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL || "https://shopoholics.in";
+  const url = process.env.WOOCOMMERCE_URL || process.env.NEXT_PUBLIC_WOOCOMMERCE_STORE_URL || "https://wp.shopoholics.in";
   return url.replace(/\/+$/, "");
 }
 
